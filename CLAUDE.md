@@ -62,30 +62,49 @@ docker-compose up
 
 ### Development
 ```bash
-# Backend (from backend/)
-uvicorn app.main:app --reload --port 8000
+# Run PyQt6 application
+source venv/bin/activate && python app/main.py
 
-# Frontend (from frontend/)
-npm run dev
+# Run with debug mode (enables signal logging)
+python app/main.py --debug
+
+# Or use development script
+python scripts/run_dev.py [--debug]
 
 # Run tests
-pytest  # backend
-npm test  # frontend
+pytest                    # All tests
+pytest tests/unit/        # Unit tests only
+pytest --cov=app         # With coverage
 ```
 
 ### Code Quality
 ```bash
-# Backend
-black app/          # Format code
-isort app/          # Sort imports
-flake8 app/         # Lint
-mypy app/           # Type check
-pytest --cov=app    # Test with coverage
+# Format and lint (run before committing)
+black app/ tests/        # Format code
+flake8 app/ tests/       # Lint code
+mypy app/               # Type check
 
-# Frontend
-npm run format      # Prettier
-npm run lint        # ESLint
-npm run type-check  # TypeScript
+# All in sequence
+black app/ tests/ && flake8 app/ tests/ && pytest
+```
+
+### Task Implementation Workflow
+```bash
+# 1. Implement task
+# 2. Run quality checks
+black app/ tests/ && flake8 app/ tests/ && pytest
+
+# 3. Update TASKS.md (mark completed, move to completed section)
+# 4. Commit with descriptive message
+git add -A && git commit -m "Complete TASK-XXX: Description
+
+- Implementation details
+- Key features added
+- Tests passing
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 ### Git Workflow (Solo Developer)

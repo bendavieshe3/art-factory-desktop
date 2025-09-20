@@ -75,8 +75,16 @@ python app/main.py
 3. Create feature branch (optional)
 4. Implement with regular commits
 5. Update task checklist as you progress
-6. Mark task as REVIEW when complete
-7. Update documentation if needed
+6. Run tests and linting before completing
+7. Mark task as COMPLETED and move to completed section
+8. **COMMIT CHANGES** with descriptive message
+9. Update documentation if needed
+
+#### Commit Requirements
+- **Always commit** when a task is completed
+- Include task ID and outcome in commit message
+- Run tests before committing
+- Use consistent commit message format with Claude Code footer
 
 ### 2. Branch Strategy (Solo Developer)
 
