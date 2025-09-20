@@ -27,37 +27,34 @@ Art Factory is a tool for managing the generation, remixing and refinement of im
 
 ## Technology Stack
 
-### Backend
-- **Python 3.11+** with **FastAPI** framework
-- **SQLAlchemy 2.0** with async support for ORM
-- **SQLite** database (PostgreSQL-ready abstractions)
-- **Celery** with Redis for background tasks (or asyncio for simpler deployment)
-- **uvicorn** for ASGI server
+### Desktop Application
+- **Python 3.11+** with **PyQt6** framework
+- **SQLAlchemy 2.0** with SQLite database
+- **Signal-based architecture** for component communication
+- **QThread** for background operations
+- **pytest-qt** for UI testing
+- **PyInstaller** for application packaging
 
-### Frontend
-- **React 18+** with **TypeScript**
-- **Vite** for build tooling
-- **Tailwind CSS** for styling
-- **Zustand** for state management
-- **Socket.io** for real-time updates
+### Key Components
+- **Signal Bus**: Centralized event system with debug logging
+- **Domain Signals**: Business events (orders, generation, products, projects)
+- **UI Signals**: User interface interactions and state changes
+- **Factory Pattern**: Provider-specific generation implementations
+- **MVC Architecture**: Models, Views, Controllers with signal mediation
 
 ## Development Commands
 
 ### Setup
 ```bash
-# Backend
-cd backend
-python -m venv venv
+# Create virtual environment
+python3 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements-dev.txt
-alembic upgrade head
 
-# Frontend
-cd frontend
-npm install
-
-# Run with Docker
-docker-compose up
+# Verify PyQt6 installation
+python3 -c "import PyQt6; print('PyQt6 installed successfully')"
 ```
 
 ### Development
@@ -129,41 +126,59 @@ git merge feature/task-xxx-description
 # wip = "!git add -A && git commit -m \"Work in progress\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\""
 ```
 
-### Database
+### Signal Architecture Usage
+```python
+# Import signal bus
+from signals import signal_bus
+
+# Connect to signals
+signal_bus.domain.order_created.connect(handle_order)
+signal_bus.ui.loading_started.connect(show_loading)
+
+# Emit signals
+signal_bus.domain.order_created.emit("order_123")
+signal_bus.ui.loading_started.emit("Loading products...")
+
+# Debug mode shows signal logging
+export AF_DEBUG=1  # or use --debug flag
+```
+
+### Database (Future)
 ```bash
-# Create migration
-alembic revision --autogenerate -m "Description"
-
-# Apply migrations
-alembic upgrade head
-
-# Rollback
-alembic downgrade -1
+# Will be added when TASK-102 is implemented
+# SQLAlchemy + Alembic for database management
 ```
 
 ## Project Structure
 
 ```
-backend/
-├── app/
-│   ├── api/v1/          # API endpoints
-│   ├── core/            # Config, security
-│   ├── models/          # SQLAlchemy models
-│   ├── schemas/         # Pydantic schemas
-│   ├── services/        # Business logic
-│   ├── factories/       # Provider implementations
-│   └── workers/         # Background tasks
-├── tests/
-└── alembic/
+app/
+├── main.py              # Application entry point
+├── application.py       # QApplication setup
+├── models/              # SQLAlchemy models (future)
+├── views/               # PyQt6 UI components
+│   ├── main_window.py   # Main application window
+│   └── widgets/         # Reusable UI widgets
+├── controllers/         # Business logic controllers (future)
+├── services/            # Direct service layer (future)
+├── factories/           # Provider implementations (future)
+├── signals/             # Signal architecture ✅
+│   ├── domain_signals.py   # Business event signals
+│   ├── ui_signals.py       # UI interaction signals
+│   └── signal_bus.py       # Singleton signal bus
+├── workers/             # Background threads (future)
+├── resources/           # Icons, styles, themes
+└── utils/               # Helper functions
 
-frontend/
-├── src/
-│   ├── components/      # React components
-│   ├── hooks/           # Custom hooks
-│   ├── services/        # API clients
-│   ├── stores/          # Zustand stores
-│   └── types/           # TypeScript types
-└── tests/
+tests/
+├── unit/
+│   └── signals/         # Signal system tests ✅
+├── integration/         # Integration tests (future)
+└── conftest.py          # Pytest configuration
+
+scripts/
+├── run_dev.py           # Development runner ✅
+└── build.sh             # Build script (future)
 ```
 
 ## Implementation Guidelines
