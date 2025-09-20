@@ -2,121 +2,352 @@
 
 ## System Overview
 
-Art Factory is a single-user, locally-deployed application for managing AI-generated media. The architecture prioritizes simplicity, extensibility, and performance for local use while maintaining clean separation of concerns.
+Art Factory is a desktop application for managing AI-generated media (images, videos) through various AI providers. Built with PyQt6 for macOS, it prioritizes rapid development, rich media handling, and clean architecture through signal-based event handling.
 
 ## Technology Stack
 
-### Backend
+### Core Technologies
 - **Language**: Python 3.11+
-- **Framework**: FastAPI
-- **Async Runtime**: asyncio/uvicorn
-- **ORM**: SQLAlchemy 2.0 with async support
-- **Database**: SQLite (with PostgreSQL-ready abstractions)
-- **Task Queue**: Celery with Redis backend (or asyncio tasks for simpler deployment)
-- **API Documentation**: OpenAPI/Swagger (auto-generated)
+- **UI Framework**: PyQt6
+- **Database**: SQLite with SQLAlchemy ORM
+- **Threading**: QThread for background operations
+- **API Clients**: httpx for async provider calls
+- **Image Processing**: Pillow (PIL)
+- **Video Handling**: PyQt6 Multimedia (QMediaPlayer)
 
-### Frontend
-- **Framework**: React 18+ with TypeScript
-- **State Management**: Zustand (simpler than Redux)
-- **UI Components**: Tailwind CSS + Headless UI
-- **Build Tool**: Vite
-- **API Client**: Axios with react-query
-- **Real-time**: Socket.io-client
+### Development Tools
+- **Testing**: pytest + pytest-qt
+- **Packaging**: PyInstaller for .app bundle
+- **Version Control**: Git
+- **Code Quality**: black, flake8, mypy
 
-### Infrastructure
-- **Development**: Docker Compose
-- **File Storage**: Local filesystem with configurable base path
-- **Caching**: In-memory (with Redis-ready interfaces)
-- **Process Manager**: Supervisor or systemd for production
+## Architecture Principles
 
-## Architecture Layers
+### 1. Signal-Driven Architecture
+All communication between layers uses PyQt signals/slots for:
+- Decoupling UI from business logic
+- Thread-safe updates across boundaries
+- Clean event propagation
+- Progress tracking and cancellation
 
-### 1. Presentation Layer (Frontend)
+### 2. MVC Pattern with Controllers
+- **Models**: SQLAlchemy entities + domain objects
+- **Views**: PyQt6 widgets and windows
+- **Controllers**: Mediate between views and services
 
-```
-src/
-├── components/
-│   ├── common/          # Shared components
-│   ├── projects/        # Project-related components
-│   ├── orders/          # Order creation/management
-│   ├── inventory/       # Product browsing/management
-│   └── admin/           # Settings and configuration
-├── hooks/               # Custom React hooks
-├── services/            # API client services
-├── stores/              # Zustand state stores
-├── types/               # TypeScript type definitions
-└── utils/               # Utility functions
-```
+### 3. Direct Service Layer
+No API layer needed - controllers call Python services directly:
+- Simpler architecture
+- Faster development iteration
+- No serialization overhead
+- Direct database access
 
-### 2. API Layer (Backend)
+## Application Structure
 
 ```
-app/
-├── api/
-│   ├── v1/
-│   │   ├── endpoints/   # REST endpoints
-│   │   ├── dependencies/ # Shared dependencies
-│   │   └── middleware/   # Custom middleware
-├── core/
-│   ├── config.py        # Configuration management
-│   ├── security.py      # Security utilities
-│   └── exceptions.py    # Custom exceptions
-├── models/              # SQLAlchemy models
-├── schemas/             # Pydantic schemas
-├── services/            # Business logic
-├── factories/           # Provider factory implementations
-└── workers/             # Background task workers
+art-factory/
+├── app/
+│   ├── main.py              # Application entry point
+│   ├── application.py       # QApplication setup
+│   │
+│   ├── models/              # Domain models & database
+│   │   ├── __init__.py
+│   │   ├── base.py         # SQLAlchemy base
+│   │   ├── project.py
+│   │   ├── order.py
+│   │   ├── product.py
+│   │   └── collection.py
+│   │
+│   ├── services/            # Business logic
+│   │   ├── __init__.py
+│   │   ├── order_service.py
+│   │   ├── generation_service.py
+│   │   └── product_service.py
+│   │
+│   ├── factories/           # Provider implementations
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── replicate_factory.py
+│   │   └── fal_factory.py
+│   │
+│   ├── controllers/         # UI controllers
+│   │   ├── __init__.py
+│   │   ├── main_controller.py
+│   │   ├── generation_controller.py
+│   │   └── gallery_controller.py
+│   │
+│   ├── views/              # PyQt6 UI
+│   │   ├── __init__.py
+│   │   ├── main_window.py
+│   │   ├── widgets/
+│   │   │   ├── gallery_widget.py
+│   │   │   ├── parameter_panel.py
+│   │   │   ├── image_viewer.py
+│   │   │   └── progress_widget.py
+│   │   └── dialogs/
+│   │       ├── preferences_dialog.py
+│   │       └── order_dialog.py
+│   │
+│   ├── signals/            # Event system
+│   │   ├── __init__.py
+│   │   ├── domain_signals.py
+│   │   └── ui_signals.py
+│   │
+│   ├── workers/            # Background threads
+│   │   ├── __init__.py
+│   │   ├── generation_worker.py
+│   │   └── import_worker.py
+│   │
+│   ├── resources/          # UI resources
+│   │   ├── icons/
+│   │   ├── styles/
+│   │   └── themes/
+│   │
+│   └── utils/              # Utilities
+│       ├── __init__.py
+│       ├── image_utils.py
+│       └── file_utils.py
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── fixtures/
+│
+├── storage/                # Default file storage
+│   ├── products/
+│   ├── thumbnails/
+│   └── temp/
+│
+├── requirements.txt
+├── requirements-dev.txt
+├── pyproject.toml
+└── README.md
 ```
 
-### 3. Business Logic Layer
+## Core Components
 
-#### Factory Hierarchy
+### 1. Signal Architecture
+
+#### Domain Signals
 ```python
-BaseProductFactory (abstract)
-├── ReplicateProductFactory
-│   ├── ReplicateTxtToImgFactory
-│   │   ├── ReplicateFluxFactory
-│   │   └── ReplicateSDXLFactory
-│   └── ReplicateImgToImgFactory
-├── FalProductFactory
-│   └── FalTxtToImgFactory
-└── LocalProcessingFactory
-    └── ImageResizeFactory
+class DomainSignals(QObject):
+    # Order/Generation lifecycle
+    order_created = pyqtSignal(str)  # order_id
+    generation_started = pyqtSignal(str, str)  # order_id, item_id
+    generation_progress = pyqtSignal(str, int)  # item_id, percent
+    generation_completed = pyqtSignal(str, object)  # item_id, product
+    generation_failed = pyqtSignal(str, str)  # item_id, error
+
+    # Product management
+    product_created = pyqtSignal(object)  # product
+    product_updated = pyqtSignal(str)  # product_id
+    product_deleted = pyqtSignal(str)  # product_id
+
+    # Collection management
+    collection_created = pyqtSignal(str)  # collection_id
+    collection_updated = pyqtSignal(str)  # collection_id
+    products_added = pyqtSignal(str, list)  # collection_id, product_ids
 ```
 
-#### Service Layer
-- **OrderService**: Order creation, parameter expansion, generation dispatch
-- **GenerationService**: Generation lifecycle management, provider coordination
-- **ProductService**: Product creation, file management, metadata extraction
-- **ProjectService**: Project CRUD, statistics, featured products
-- **ProviderService**: Provider configuration, model discovery, quota management
-
-### 4. Data Layer
-
-#### Database Models
+#### UI Signals
 ```python
-# Core entities
-Project
-Order
-OrderItem
-Product
-Collection
-CollectionProduct
+class UISignals(QObject):
+    # User actions
+    request_generation = pyqtSignal(dict)  # parameters
+    request_cancel = pyqtSignal(str)  # item_id
 
-# Supporting entities
-Lookup
-Template
-Tag
-TagAssociation
+    # View state
+    view_changed = pyqtSignal(str)  # view_name
+    selection_changed = pyqtSignal(list)  # selected_items
+    filter_applied = pyqtSignal(dict)  # filter_params
 
-# System entities
-Provider
-Model
-ModelFamily
-GenerationLog
+    # Loading states
+    loading_started = pyqtSignal(str)  # task_name
+    loading_finished = pyqtSignal()
+    error_occurred = pyqtSignal(str)  # error_message
 ```
 
-#### File Storage Structure
+### 2. Controller Pattern
+
+Controllers mediate between UI and services:
+
+```python
+class GenerationController(QObject):
+    def __init__(self, domain_signals: DomainSignals):
+        super().__init__()
+        self.signals = domain_signals
+        self.order_service = OrderService()
+        self.generation_service = GenerationService()
+
+        # Connect UI signals to actions
+        self.ui_signals = UISignals()
+        self.ui_signals.request_generation.connect(self.start_generation)
+
+    def start_generation(self, params: dict):
+        """Handle generation request from UI"""
+        # Create order
+        order = self.order_service.create_order(params)
+        self.signals.order_created.emit(order.id)
+
+        # Start worker thread
+        worker = GenerationWorker(order)
+        worker.progress.connect(
+            lambda p: self.signals.generation_progress.emit(order.id, p)
+        )
+        worker.completed.connect(self._on_generation_complete)
+        worker.start()
+```
+
+### 3. Worker Threads
+
+Long-running operations use QThread:
+
+```python
+class GenerationWorker(QThread):
+    progress = pyqtSignal(int)
+    completed = pyqtSignal(str, object)  # item_id, product
+    error = pyqtSignal(str)
+
+    def __init__(self, order: Order):
+        super().__init__()
+        self.order = order
+
+    def run(self):
+        try:
+            # Perform generation
+            for i, item in enumerate(self.order.items):
+                product = self.generate_product(item)
+                progress = int((i + 1) / len(self.order.items) * 100)
+                self.progress.emit(progress)
+                self.completed.emit(item.id, product)
+        except Exception as e:
+            self.error.emit(str(e))
+```
+
+### 4. View Components
+
+#### Main Window Structure
+```python
+class MainWindow(QMainWindow):
+    def __init__(self, controller: MainController):
+        super().__init__()
+        self.controller = controller
+
+        # Create UI components
+        self.gallery = GalleryWidget()
+        self.parameter_panel = ParameterPanel()
+        self.progress_dock = ProgressDock()
+
+        # Layout with dockable panels
+        self.setCentralWidget(self.gallery)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.parameter_panel)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.progress_dock)
+
+        # Connect signals
+        self.controller.signals.product_created.connect(
+            self.gallery.add_product
+        )
+```
+
+#### Gallery Widget
+```python
+class GalleryWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QGridLayout()
+        self.products = []
+
+    def add_product(self, product: Product):
+        thumbnail = ProductThumbnail(product)
+        row = len(self.products) // 4
+        col = len(self.products) % 4
+        self.layout.addWidget(thumbnail, row, col)
+        self.products.append(product)
+```
+
+## Data Layer
+
+### Database Schema
+Using SQLAlchemy with SQLite:
+
+```python
+class Base(DeclarativeBase):
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow)
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    name: Mapped[str]
+    description: Mapped[Optional[str]]
+    products: Mapped[List["Product"]] = relationship(back_populates="project")
+
+class Product(Base):
+    __tablename__ = "products"
+
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"))
+    file_path: Mapped[str]
+    thumbnail_path: Mapped[Optional[str]]
+    metadata: Mapped[dict] = mapped_column(JSON)
+    project: Mapped["Project"] = relationship(back_populates="products")
+```
+
+### Direct Database Access
+No ORM abstraction layer - services use SQLAlchemy directly:
+
+```python
+class ProductService:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def create_product(self, data: dict) -> Product:
+        product = Product(**data)
+        self.session.add(product)
+        self.session.commit()
+        return product
+
+    def get_products(self, project_id: str) -> List[Product]:
+        return self.session.query(Product)\
+            .filter(Product.project_id == project_id)\
+            .order_by(Product.created_at.desc())\
+            .all()
+```
+
+## Provider Integration
+
+### Factory Pattern
+Each provider has its own factory implementation:
+
+```python
+class BaseProductFactory(ABC):
+    @abstractmethod
+    def validate_parameters(self, params: dict) -> dict:
+        """Validate and normalize parameters"""
+        pass
+
+    @abstractmethod
+    def generate(self, params: dict) -> Product:
+        """Generate product from parameters"""
+        pass
+
+class ReplicateFactory(BaseProductFactory):
+    def __init__(self):
+        self.client = replicate.Client()
+
+    def generate(self, params: dict) -> Product:
+        # Call Replicate API
+        output = self.client.run(
+            params["model"],
+            input=params["input"]
+        )
+        # Save file and create product
+        return self.save_product(output)
+```
+
+## File Storage
+
+### Storage Structure
 ```
 storage/
 ├── products/
@@ -132,196 +363,153 @@ storage/
 └── exports/      # User exports
 ```
 
-## Key Design Patterns
+### Thumbnail Generation
+Automatic thumbnail creation on product import:
 
-### 1. Factory Pattern
-- Each provider/model combination has a dedicated factory
-- Factories handle parameter validation, API calls, and result processing
-- Common functionality inherited from base classes
-
-### 2. Repository Pattern
-- Database operations abstracted through repository classes
-- Enables easy testing and potential database switching
-
-### 3. Service Layer Pattern
-- Business logic separated from API endpoints
-- Services coordinate between repositories and external systems
-
-### 4. Observer Pattern
-- WebSocket connections for real-time generation updates
-- Event-driven architecture for background tasks
-
-## API Design
-
-### RESTful Endpoints
-
-```
-# Projects
-GET    /api/v1/projects
-POST   /api/v1/projects
-GET    /api/v1/projects/{id}
-PUT    /api/v1/projects/{id}
-DELETE /api/v1/projects/{id}
-
-# Orders
-POST   /api/v1/orders
-GET    /api/v1/orders
-GET    /api/v1/orders/{id}
-GET    /api/v1/orders/{id}/items
-
-# Products
-GET    /api/v1/products
-GET    /api/v1/products/{id}
-PUT    /api/v1/products/{id}
-DELETE /api/v1/products/{id}
-GET    /api/v1/products/{id}/thumbnail
-
-# Providers
-GET    /api/v1/providers
-GET    /api/v1/providers/{id}/models
-POST   /api/v1/providers/{id}/validate
-
-# Generation
-POST   /api/v1/generate
-GET    /api/v1/generate/{id}/status
-POST   /api/v1/generate/{id}/cancel
-
-# WebSocket
-WS     /ws/generation/{order_id}
+```python
+def generate_thumbnails(image_path: str) -> dict:
+    """Generate multiple thumbnail sizes"""
+    thumbnails = {}
+    with Image.open(image_path) as img:
+        for size_name, dimensions in THUMBNAIL_SIZES.items():
+            thumb = img.copy()
+            thumb.thumbnail(dimensions, Image.Resampling.LANCZOS)
+            thumb_path = get_thumbnail_path(image_path, size_name)
+            thumb.save(thumb_path)
+            thumbnails[size_name] = thumb_path
+    return thumbnails
 ```
 
-### Request/Response Format
+## Performance Considerations
 
-```json
-// Request
-{
-  "provider": "replicate",
-  "model": "flux-schnell",
-  "project_id": "uuid",
-  "parameters": {
-    "prompt": "A [red,blue] car",
-    "num_inference_steps": "4,8",
-    "guidance_scale": 3.5
-  }
-}
+### 1. Lazy Loading
+- Gallery uses virtual scrolling for large collections
+- Images loaded on-demand with placeholder thumbnails
+- Database queries paginated
 
-// Response
-{
-  "order_id": "uuid",
-  "status": "processing",
-  "total_items": 4,
-  "completed_items": 0,
-  "products": []
-}
+### 2. Background Operations
+- All API calls in worker threads
+- Image processing off main thread
+- Database writes batched when possible
+
+### 3. Caching
+- In-memory cache for recent products
+- Thumbnail cache with LRU eviction
+- Parameter templates cached
+
+## Security
+
+### API Key Management
+- Stored in system keychain (not config files)
+- Never logged or displayed in UI
+- Encrypted in memory when possible
+
+### File Safety
+- Sanitize filenames
+- Validate file types before processing
+- Sandbox file operations to storage directory
+
+## Testing Strategy
+
+### Unit Tests
+```python
+def test_generation_controller():
+    controller = GenerationController(mock_signals)
+    params = {"prompt": "test image"}
+    controller.start_generation(params)
+
+    assert mock_signals.order_created.emit.called
+    assert controller.worker.isRunning()
 ```
 
-## Security Considerations
+### Integration Tests
+```python
+@pytest.mark.qt
+def test_gallery_widget(qtbot):
+    gallery = GalleryWidget()
+    qtbot.addWidget(gallery)
 
-### API Security
-- Optional JWT authentication for web UI
-- API key management with encryption at rest
-- Rate limiting per endpoint
-- Input validation and sanitization
+    product = Product(name="test")
+    gallery.add_product(product)
 
-### File Security
-- Virus scanning for imports (optional ClamAV integration)
-- File type validation
-- Size limits configurable per provider
-- Secure file paths (no directory traversal)
-
-## Performance Optimization
-
-### Database
-- Strategic indexes on frequently queried fields
-- Denormalized counts for performance
-- Query optimization with EXPLAIN analysis
-- Connection pooling
-
-### Caching
-- In-memory cache for provider configurations
-- Thumbnail caching with LRU eviction
-- Parameter spec caching per factory
-- Response caching for read-heavy endpoints
-
-### Async Operations
-- Async database queries with SQLAlchemy
-- Concurrent provider API calls
-- Background task processing
-- WebSocket connection pooling
-
-## Monitoring & Logging
-
-### Logging
-- Structured logging with Python logging module
-- Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
-- Separate logs for application, generation, and access
-- Log rotation with size/time limits
-
-### Metrics
-- Generation success/failure rates
-- Provider API response times
-- Database query performance
-- Storage usage trends
+    assert len(gallery.products) == 1
+    assert gallery.layout.count() == 1
+```
 
 ## Deployment
 
-### Development Environment
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./storage:/app/storage
-  
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-  
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+### Development
+```bash
+# Install dependencies
+pip install -r requirements-dev.txt
+
+# Run application
+python app/main.py
+
+# Run tests
+pytest tests/
 ```
 
-### Production Deployment
-- Single binary/installer for Mac OS
-- Systemd service for backend
-- Nginx for static file serving
-- Automated backup scripts
+### Production Build
+```bash
+# Build with PyInstaller
+pyinstaller art-factory.spec
 
-## Extension Points
-
-### Provider Plugins
-```python
-# Custom provider implementation
-class CustomProvider(BaseProductFactory):
-    def validate_parameters(self, params: dict) -> dict:
-        # Custom validation
-        pass
-    
-    def generate(self, params: dict) -> list[Product]:
-        # Custom generation logic
-        pass
+# Output: dist/ArtFactory.app
 ```
 
-### UI Themes
-- CSS variable-based theming
-- Dark/light mode support
-- Custom color schemes
+### Application Bundle Structure
+```
+ArtFactory.app/
+├── Contents/
+│   ├── Info.plist
+│   ├── MacOS/
+│   │   └── art-factory  # Main executable
+│   ├── Resources/
+│   │   ├── icon.icns
+│   │   └── qt_plugins/
+│   └── Frameworks/
+│       └── Python.framework
+```
 
-## Migration Path
+## Migration from Web Architecture
 
-### Database Migrations
-- Alembic for schema migrations
-- Backward-compatible changes
-- Migration testing framework
+### Removed Components
+- ❌ FastAPI backend
+- ❌ React frontend
+- ❌ Docker containers
+- ❌ Redis caching
+- ❌ API authentication
+- ❌ CORS configuration
+- ❌ WebSocket connections
 
-### API Versioning
-- URL-based versioning (/api/v1/, /api/v2/)
-- Deprecation warnings in headers
-- Grace period for version transitions
+### Simplified Components
+- ✅ Direct database access (no API)
+- ✅ Direct file system access
+- ✅ Single process architecture
+- ✅ Native UI components
+- ✅ System keychain for secrets
+
+## Future Considerations
+
+### Potential Enhancements
+1. **Plugin System**: Allow custom provider plugins
+2. **Automation**: AppleScript/Shortcuts support
+3. **Cloud Sync**: Optional iCloud backup
+4. **Multi-window**: Support multiple projects open
+
+### Performance Optimizations
+1. **GPU Acceleration**: For image processing
+2. **Parallel Generation**: Multiple providers simultaneously
+3. **Smart Caching**: Predictive loading based on usage
+
+## Conclusion
+
+This PyQt6 desktop architecture provides:
+- **Rapid Development**: Single language, no API layer
+- **Rich UI**: Native widgets for media handling
+- **Clean Architecture**: Signal-based decoupling
+- **Performance**: Direct operations without web overhead
+- **Maintainability**: Clear separation of concerns
+
+The focus on Python-only development with PyQt6 dramatically simplifies the stack while providing all necessary features for a professional media generation application.
