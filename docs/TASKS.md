@@ -1,16 +1,16 @@
-# Art Factory Tasks
+# Art Factory Tasks (PyQt6 Desktop Architecture)
 
 ## Project Status
-**Focus**: Foundation - Project infrastructure and core models
-**Last Updated**: 2025-09-20 (Status: Git foundation complete, ready for architecture review)
+**Focus**: Desktop application foundation with PyQt6
+**Last Updated**: 2025-09-20 (Architecture review complete - PyQt6 desktop approach confirmed)
 
 ### Task Summary
 | Status | Count |
 |--------|-------|
-| Total Tasks | 12 |
+| Total Tasks | 15 |
 | Completed | 2 |
 | In Progress | 0 |
-| Todo | 10 |
+| Todo | 13 |
 | Blocked | 0 |
 
 ---
@@ -23,203 +23,233 @@
 
 ## 📋 Todo
 
-### TASK-011: Review Technical Architecture [REVIEW]
-**Priority**: P0 - Critical
-**Estimated**: 2 hours
-**Dependencies**: None
-**Human Review**: ✅ Reviewed
-
-**Acceptance Criteria**:
-- [x] Document PyQt6 desktop architecture decision
-- [x] Update technical-architecture.md with PyQt6 stack
-- [x] Remove web-related components (FastAPI, React, Docker)
-- [x] Define PyQt6 application structure and widget strategy
-- [x] Define signal/slot architecture for domain events
-- [x] Plan UI state management with signals
-- [x] Design controller layer to mediate between UI and services
-- [x] Document threading strategy with QThread and signals
-- [x] Plan direct Python service layer (no API needed)
-- [x] Update database integration approach (direct SQLAlchemy)
-- [x] Create new simplified task list based on desktop approach (TASKS-REVISED.md)
-- [x] Update development workflow for PyQt6 development
-
----
-
-### TASK-000: Local Git Initialization [REVIEW]
-**Priority**: P0 - Critical
-**Estimated**: 30 minutes
-**Dependencies**: None
-**Human Review**: ✅ Reviewed
-
-**Acceptance Criteria**:
-- [x] Check if git already initialized, skip if exists
-- [x] Initialize git repository with `git init`
-- [x] Verify git config exists (user.name, user.email), prompt if missing
-- [x] Create comprehensive .gitignore (Python, Node.js, IDE, OS, project-specific)
-- [x] Stage all documentation files for initial commit
-- [x] Make initial commit: "Initial commit: project documentation"
-- [x] Update CLAUDE.md with simplified git workflow guidelines
-- [x] Create .gitmessage template for consistent commit messages
-- [x] Add git aliases to CLAUDE.md for task workflow
-
----
-
 ### TASK-001: GitHub Repository Setup [TODO]
 **Priority**: P0 - Critical
-**Estimated**: 2 hours
-**Dependencies**: TASK-000
+**Dependencies**: TASK-000 (completed)
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
 - [ ] Create GitHub repository
 - [ ] Push local repository to GitHub
-- [ ] Initialize README with project overview
+- [ ] Initialize README with PyQt6 desktop project overview
 - [ ] Set up branch protection rules
-- [ ] Create issue templates
+- [ ] Create issue templates for desktop app
 
 ---
 
-### TASK-002: Backend Project Setup [TODO]
+### TASK-100: PyQt6 Application Setup [TODO]
 **Priority**: P0 - Critical
-**Estimated**: 4 hours
-**Dependencies**: TASK-000
+**Dependencies**: None
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
-- [ ] Create backend directory structure
-- [ ] Initialize Python virtual environment
-- [ ] Create requirements.txt with FastAPI dependencies
-- [ ] Set up basic FastAPI application
-- [ ] Configure development server
-- [ ] Add health check endpoint
-- [ ] Create initial tests structure
+- [ ] Create app directory structure
+- [ ] Set up Python virtual environment
+- [ ] Create requirements.txt with PyQt6 and core dependencies
+- [ ] Implement basic QApplication and main window
+- [ ] Add application icon and metadata
+- [ ] Create run script for development
+- [ ] Verify PyQt6 runs on macOS
 
 ---
 
-### TASK-003: Frontend Project Setup [TODO]
+### TASK-101: Signal Architecture Setup [TODO]
 **Priority**: P0 - Critical
-**Estimated**: 3 hours
-**Dependencies**: TASK-000
+**Dependencies**: TASK-100
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
-- [ ] Initialize React with Vite
-- [ ] Configure TypeScript
-- [ ] Set up Tailwind CSS
-- [ ] Create basic component structure
-- [ ] Set up routing with React Router
-- [ ] Configure development proxy
+- [ ] Create signals module with DomainSignals class
+- [ ] Create UISignals class for user interactions
+- [ ] Implement signal bus singleton pattern
+- [ ] Add signal logging for debugging
+- [ ] Write tests for signal emission and handling
 
 ---
 
-### TASK-004: Database Schema Implementation [TODO]
+### TASK-102: Database Models Implementation [TODO]
 **Priority**: P0 - Critical
-**Estimated**: 6 hours
-**Dependencies**: TASK-002
+**Dependencies**: TASK-100
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
-- [ ] Create SQLAlchemy models for all entities
-- [ ] Set up Alembic for migrations
-- [ ] Create initial migration
-- [ ] Add database connection management
-- [ ] Implement soft delete support
+- [ ] Set up SQLAlchemy with SQLite
+- [ ] Create base model with common fields
+- [ ] Implement Project, Order, Product, Collection models
+- [ ] Add Alembic for migrations
 - [ ] Create database initialization script
+- [ ] Implement soft delete support
+- [ ] Write model tests
 
 ---
 
-### TASK-005: Docker Environment Setup [TODO]
+### TASK-103: Main Window and Layout [TODO]
 **Priority**: P1 - High
-**Estimated**: 3 hours
-**Dependencies**: TASK-002, TASK-003
+**Dependencies**: TASK-100
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
-- [ ] Create Dockerfile for backend
-- [ ] Create Dockerfile for frontend
-- [ ] Set up docker-compose.yml
-- [ ] Configure volumes for development
-- [ ] Add Redis service for caching
-- [ ] Test full stack startup
+- [ ] Create QMainWindow with menu bar
+- [ ] Implement dockable panels layout
+- [ ] Add gallery as central widget
+- [ ] Create parameter panel dock
+- [ ] Add progress dock at bottom
+- [ ] Implement view state persistence
+- [ ] Add dark/light theme support
 
 ---
 
-### TASK-006: API Structure and Base Endpoints [TODO]
+### TASK-104: Gallery Widget Implementation [TODO]
 **Priority**: P1 - High
-**Estimated**: 4 hours
-**Dependencies**: TASK-004
+**Dependencies**: TASK-103
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
-- [ ] Create API versioning structure
-- [ ] Implement base CRUD endpoints for projects
-- [ ] Add request/response schemas with Pydantic
-- [ ] Set up error handling middleware
-- [ ] Configure CORS
-- [ ] Generate OpenAPI documentation
+- [ ] Create gallery grid widget
+- [ ] Implement virtual scrolling for performance
+- [ ] Add thumbnail loading with placeholders
+- [ ] Support selection (single and multi)
+- [ ] Add context menu for actions
+- [ ] Implement drag and drop support
+- [ ] Add image preview on click
 
 ---
 
-### TASK-007: Base Factory Implementation [TODO]
+### TASK-105: Controller Layer [TODO]
 **Priority**: P1 - High
-**Estimated**: 6 hours
-**Dependencies**: TASK-004
+**Dependencies**: TASK-101, TASK-102
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create MainController for app coordination
+- [ ] Implement GenerationController
+- [ ] Create GalleryController
+- [ ] Add ProjectController
+- [ ] Connect controllers to signals
+- [ ] Implement controller tests
+
+---
+
+### TASK-106: Service Layer Implementation [TODO]
+**Priority**: P1 - High
+**Dependencies**: TASK-102
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create OrderService for order management
+- [ ] Implement GenerationService
+- [ ] Create ProductService
+- [ ] Add ProjectService
+- [ ] Implement direct database access patterns
+- [ ] Write service tests
+
+---
+
+### TASK-107: Base Factory Implementation [TODO]
+**Priority**: P1 - High
+**Dependencies**: TASK-106
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
 - [ ] Create BaseProductFactory abstract class
-- [ ] Implement parameter validation framework
-- [ ] Create ParameterSpec classes
+- [ ] Implement parameter validation
 - [ ] Add parameter interpolation logic
-- [ ] Implement token expansion logic
+- [ ] Implement token expansion ([red,blue,green])
+- [ ] Create factory registry pattern
 - [ ] Write comprehensive tests
 
 ---
 
-### TASK-008: Testing Infrastructure [TODO]
+### TASK-108: Worker Thread Framework [TODO]
 **Priority**: P1 - High
-**Estimated**: 4 hours
-**Dependencies**: TASK-002, TASK-003
+**Dependencies**: TASK-101
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
-- [ ] Configure pytest for backend
-- [ ] Set up Jest for frontend
-- [ ] Create test database fixtures
+- [ ] Create base QThread worker class
+- [ ] Implement GenerationWorker
+- [ ] Add ImportWorker for file imports
+- [ ] Support progress reporting
+- [ ] Implement cancellation
+- [ ] Add error handling
+- [ ] Write worker tests with qtbot
+
+---
+
+### TASK-109: Replicate Provider Implementation [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-107
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create ReplicateFactory class
+- [ ] Implement Replicate API client
+- [ ] Add model configuration
+- [ ] Support image generation
+- [ ] Handle API errors gracefully
+- [ ] Store API key in keychain
+- [ ] Test with mock API responses
+
+---
+
+### TASK-110: Image Viewer Widget [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-104
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create image viewer with QGraphicsView
+- [ ] Implement pan and zoom controls
+- [ ] Add fit-to-window option
+- [ ] Support high-resolution images
+- [ ] Add basic image info display
+- [ ] Implement fullscreen mode
+
+---
+
+### TASK-111: Parameter Panel UI [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-103
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create parameter input widgets
+- [ ] Support different parameter types
+- [ ] Add parameter validation UI
+- [ ] Implement parameter presets
+- [ ] Add collapsible sections
+- [ ] Support parameter dependencies
+
+---
+
+### TASK-112: Testing Infrastructure [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-100
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Configure pytest with pytest-qt
+- [ ] Set up test database fixtures
+- [ ] Create Qt test helpers
 - [ ] Add coverage reporting
-- [ ] Set up CI pipeline with GitHub Actions
+- [ ] Set up CI with GitHub Actions
 - [ ] Create pre-commit hooks
 
 ---
 
-### TASK-009: Development Documentation [TODO]
-**Priority**: P2 - Medium
-**Estimated**: 2 hours
-**Dependencies**: TASK-005
+### TASK-113: PyInstaller Packaging [TODO]
+**Priority**: P3 - Low
+**Dependencies**: TASK-100
 **Human Review**: ❌ Not Reviewed
 
 **Acceptance Criteria**:
-- [ ] Create setup instructions in README
-- [ ] Document API endpoints
-- [ ] Add code style guide
-- [ ] Create contribution guidelines
-- [ ] Set up development troubleshooting guide
-
----
-
-### TASK-010: Frontend Base Components [TODO]
-**Priority**: P2 - Medium
-**Estimated**: 5 hours
-**Dependencies**: TASK-003
-**Human Review**: ❌ Not Reviewed
-
-**Acceptance Criteria**:
-- [ ] Create layout components (Header, Footer, Navigation)
-- [ ] Build form components library
-- [ ] Create error boundary component
-- [ ] Add loading states and skeletons
-- [ ] Implement toast notifications
-- [ ] Set up Zustand store structure
+- [ ] Create PyInstaller spec file
+- [ ] Configure bundle metadata
+- [ ] Include all resources
+- [ ] Create macOS .app bundle
+- [ ] Add code signing setup
+- [ ] Create DMG installer
+- [ ] Test on clean macOS
 
 ---
 
@@ -232,7 +262,7 @@
 - Defined signal-driven architecture with clean separation of concerns
 - Created comprehensive application structure and component hierarchy
 - Documented event/signal strategy for UI and domain events
-- Created new task list (TASKS-REVISED.md) with PyQt6-focused tasks
+- Replaced old web-based task list with PyQt6-focused tasks
 - Updated development workflow for desktop development
 - Removed all web-related components (FastAPI, React, Docker)
 
@@ -250,69 +280,48 @@
 
 ## 🔄 Backlog
 
-### Phase 2: Core Features
+### Phase 2: Additional Features
 
-- TASK-011: Replicate Provider Implementation
-- TASK-012: Order Creation Service
-- TASK-013: Product Management Service
-- TASK-014: WebSocket Real-time Updates
-- TASK-015: File Storage Management
-- TASK-016: Frontend Order Creation UI
-- TASK-017: Frontend Product Gallery
-- TASK-018: Project Management UI
-- TASK-019: Parameter Expansion UI
-- TASK-020: Generation Progress Tracking
+- Additional Providers (fal.ai, Civitai)
+- Collections Management UI
+- Template System
+- Advanced Search and Filtering
+- Batch Operations
+- Export/Import Functionality
+- Statistics Dashboard
+- User Preferences Dialog
+- Keyboard Shortcuts
+- Video Player Widget
 
-### Phase 3: Enhancement Features
+### Phase 3: Polish & Distribution
 
-- TASK-021: Additional Providers (fal.ai, Civitai)
-- TASK-022: Collections Implementation
-- TASK-023: Template System
-- TASK-024: Advanced Search and Filtering
-- TASK-025: Batch Operations
-- TASK-026: Export/Import Functionality
-- TASK-027: Statistics Dashboard
-- TASK-028: User Preferences
-- TASK-029: Keyboard Shortcuts
-- TASK-030: Dark Mode Support
-
-### Phase 4: Testing & Polish
-
-- TASK-031: E2E Test Suite
-- TASK-032: Performance Optimization
-- TASK-033: Security Audit
-- TASK-034: Mac OS Installer
-- TASK-035: User Documentation
-- TASK-036: Demo Content
-- TASK-037: Release Preparation
+- Performance Optimization
+- Memory Management
+- Apple Notarization
+- Auto-update System
+- Crash Reporting
+- User Documentation
+- Demo Content
 
 ---
-
 
 ## 📝 Notes
 
 ### Context for Claude Code
-- This is a greenfield project - no existing code yet
-- Following Python/FastAPI + React/TypeScript stack
-- Target is single-user deployment on Mac OS
-- Database: SQLite with PostgreSQL-compatible design
-- All detailed specifications are in ./docs/
+- Desktop application using PyQt6
+- Python-only development (no web stack)
+- Direct database access with SQLAlchemy
+- Signal-based architecture for clean separation
+- Target is macOS initially
+- Architecture documented in technical-architecture.md
+- Development workflow in development-workflow.md
 
-### How to Use This File
-1. Tasks move through states: TODO → IN PROGRESS → REVIEW → COMPLETED
-2. Update checklist items as you complete them
-3. Add notes and blockers as needed
-4. Create detailed task files in ./docs/tasks/ for complex implementations
-5. Archive completed sprints to TASKS-ARCHIVE.md
-
-### Quick Commands
-- `/task-list` - Show current tasks and what to work on next
-- `/task-status` - Get current status and update this file
-- `/task-implement` - Start working on a specific task
-- `/task-create` - Create a new task entry
-- `/task-prioritize` - Prioritize and organize tasks
-- `/task-completed-review` - Review completed task implementation
-- `/task-help` - Show help for task management commands
+### Development Approach
+1. Foundation first (app setup, signals, database)
+2. Core UI components (main window, gallery)
+3. Business logic (controllers, services)
+4. Provider integration
+5. Polish and packaging
 
 ---
 
