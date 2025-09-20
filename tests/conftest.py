@@ -40,7 +40,7 @@ def reset_signal_bus():
 
     This ensures tests don't interfere with each other.
     """
-    from app.signals import signal_bus
+    from signals import signal_bus
 
     yield
     signal_bus.reset()

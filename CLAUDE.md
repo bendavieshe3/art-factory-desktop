@@ -63,13 +63,13 @@ docker-compose up
 ### Development
 ```bash
 # Run PyQt6 application
-source venv/bin/activate && python app/main.py
+source venv/bin/activate && python3 app/main.py
 
 # Run with debug mode (enables signal logging)
-python app/main.py --debug
+python3 app/main.py --debug
 
-# Or use development script
-python scripts/run_dev.py [--debug]
+# Or use development script (handles venv automatically)
+python3 scripts/run_dev.py [--debug]
 
 # Run tests
 pytest                    # All tests

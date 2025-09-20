@@ -5,7 +5,7 @@ import os
 from io import StringIO
 from contextlib import redirect_stderr
 
-from app.signals import SignalBus, signal_bus
+from signals import SignalBus, signal_bus
 
 
 class TestSignalBus:
@@ -143,7 +143,7 @@ class TestSignalLogging:
     def test_debug_logging_emission(self, debug_mode, qtbot, monkeypatch):
         """Test that signal emissions are logged in debug mode."""
         # Recreate signal bus with debug mode
-        from app.signals.signal_bus import SignalBus
+        from signals.signal_bus import SignalBus
 
         monkeypatch.setattr(SignalBus, "_instance", None)
 
@@ -165,7 +165,7 @@ class TestSignalLogging:
     def test_debug_logging_connection(self, debug_mode, monkeypatch):
         """Test that signal connections are logged in debug mode."""
         # Recreate signal bus with debug mode
-        from app.signals.signal_bus import SignalBus
+        from signals.signal_bus import SignalBus
 
         monkeypatch.setattr(SignalBus, "_instance", None)
 
@@ -190,7 +190,7 @@ class TestSignalLogging:
         monkeypatch.delenv("AF_DEBUG", raising=False)
 
         # Recreate signal bus without debug mode
-        from app.signals.signal_bus import SignalBus
+        from signals.signal_bus import SignalBus
 
         monkeypatch.setattr(SignalBus, "_instance", None)
 

@@ -3,7 +3,7 @@
 # Domain signals testing
 from PyQt6.QtCore import QObject
 
-from app.signals import DomainSignals
+from signals import DomainSignals
 
 
 class SignalReceiver(QObject):

@@ -3,7 +3,7 @@
 # UI signals testing
 from PyQt6.QtCore import QObject
 
-from app.signals import UISignals
+from signals import UISignals
 
 
 class SignalReceiver(QObject):

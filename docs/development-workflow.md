@@ -56,7 +56,7 @@ pip install -r requirements-dev.txt
 python scripts/init_db.py
 
 # Run application
-python app/main.py
+python3 app/main.py
 ```
 
 ## Development Process
