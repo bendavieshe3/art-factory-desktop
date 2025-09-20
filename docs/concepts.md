@@ -142,23 +142,27 @@ This allows the UI to dynamically adapt to different models while maintaining a 
 
 ## OrderItem
 
-An OrderItem is a request for one or more *product* to be created by a *ProductFactory*, and typically aligns to a single API request to the underlying provider.
+An OrderItem represents a single API request to a provider for product generation. This replaces the previous "Generation" concept for clarity.
+
+**Note**: In early documentation, this concept was referred to as "Generation". OrderItem is the preferred term going forward as it better represents the relationship to Orders and aligns with the database schema.
 
 Examples:
-- A simple API call to generate an image from a provider
-- A simple API call to generate a batch of images from a provider
+- A single API call to generate an image from a provider
+- A single API call to generate a batch of images from a provider
 
 Usage:
 - One or more *OrderItems* are created from an *order* using a *base parameter set*
-- A *OrderItem* can generate one or more *products*
-- A *OrderItem* always has a single *order* and is performed using a single *factory*
-- A *OrderItem* has a *generation parameter set* that is used by a *factory* to create an *actual parameter set* used in the API request to the provider
+- An *OrderItem* can generate one or more *products*
+- An *OrderItem* always belongs to a single *order* and uses a single *factory*
+- An *OrderItem* has a *generation parameter set* that is used by a *factory* to create an *actual parameter set* for the API request
 
 An OrderItem represents a specific instance of product creation with:
 
+* Generation parameter set (expanded from base parameters)
 * Actual parameter set used (including interpolated values)
-* Output parameter set (including generated values like seeds)
-* Generated product reference
+* Return parameter set (including generated values like seeds)
+* Generated product references
+* Status tracking and error handling
 
 ## Orders
 

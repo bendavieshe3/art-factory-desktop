@@ -1,111 +1,123 @@
-# Art Factory User Experience
+# Art Factory User Experience (PyQt6 Desktop)
 
-This document defines the user interface requirements, layouts, and interaction patterns for Art Factory.
+This document defines the user interface requirements, layouts, and interaction patterns for Art Factory desktop application.
 
 ## Design Principles
 
-### Modern Responsive Design
-- Optimized for desktop use
-- Clean, professional interface
-- Consistent design patterns throughout
-- Progressive disclosure of complexity
+### Native Desktop Design
+- Optimized for macOS desktop experience
+- Native PyQt6 widgets and interactions
+- Consistent with macOS Human Interface Guidelines
+- Progressive disclosure of complexity through docks and dialogs
 
 ### User-Centered Approach
 - Minimize cognitive load for common tasks
-- Clear visual hierarchy
+- Clear visual hierarchy with native controls
 - Immediate feedback for user actions
-- Graceful error handling with helpful messages
+- Graceful error handling with native dialogs
 
 ## Application Structure
 
-### Navigation
-The application uses a header navigation with main sections:
+### Main Window Layout
+The application uses a QMainWindow with dockable panels:
 
-- **Projects**: Project management and overview (default home page)
-- **Order**: Place new orders and view recent activity
-- **Production**: Monitor generation progress and system status
-- **Inventory**: Browse and manage generated products
-- **Admin**: Settings, logs, and system management
+- **Central Widget**: Primary content area (Projects overview or Gallery)
+- **Menu Bar**: File, Edit, View, Tools, Window, Help
+- **Toolbar**: Quick access to common actions
+- **Dockable Panels**: Parameter panel, progress panel, metadata panel
+- **Status Bar**: Current operation status and system information
 
-### Common Page Elements
+### Navigation Sections
+Main application modes accessible via menu or toolbar:
 
-#### Header
-- Fixed to top of window, does not scroll
-- Application title "AI Art Factory" linking to home
-- Horizontal navigation bar for main sections
-- Optional status indicators (active generations, etc.)
+- **Projects Mode**: Project management and overview (default)
+- **Gallery Mode**: Browse and manage all products
+- **Order Mode**: Create new orders with parameter forms
+- **Monitoring Mode**: Track generation progress and system status
 
-#### Footer
-- Fixed to bottom of browser window
-- Copyright notice
-- Version information
-- Does not scroll with content
+### Native UI Elements
+
+#### Menu Bar
+- **File**: New Project, Import, Export, Preferences, Quit
+- **Edit**: Undo, Redo, Cut, Copy, Paste, Select All
+- **View**: Show/Hide panels, Zoom, Full Screen
+- **Tools**: Providers, Templates, Collections
+- **Window**: Minimize, Zoom, standard window controls
+- **Help**: Documentation, About
+
+#### Toolbars
+- Customizable quick access to frequent actions
+- Icon + text labels for clarity
+- Context-sensitive tools based on current mode
+
+#### Dockable Panels
+- **Parameter Panel**: Model selection and parameter controls
+- **Progress Panel**: Active generations and queue
+- **Metadata Panel**: Selected product information
+- **Collections Panel**: User-defined product groups
 
 #### Error Handling
-- Banner appears below header for errors
-- Brief description with expandable details ("More"/"Less" toggle)
-- Dismissible with "OK" button
-- Contextual error messages within forms
+- Native QMessageBox dialogs for errors
+- Toast-style notifications for non-critical feedback
+- Inline validation in forms with visual indicators
+- Progress dialogs for long-running operations
 
 ## Main Sections
 
-### Projects Section (Home Page)
+### Projects Mode (Default View)
 
 **Purpose**: Primary entry point and organizational hub for all work
 
-#### Projects Overview Page (`/` or `/projects/`)
+#### Projects Overview Widget
 **Layout**:
-- Hero section with recent/active projects
-- Grid of project cards showing:
+- QScrollArea with project cards in grid layout
+- Each project card (custom QWidget) showing:
   - Project name and description
-  - Featured product thumbnails (3-4 images)
-  - Order count and product count
+  - Featured product thumbnails (3-4 images using QLabel)
+  - Order count and product count (QLabel with metrics)
   - Last activity timestamp
-  - Status indicator (active/archived/completed)
-  - Quick actions (view, edit, archive)
-- "Create New Project" prominent button
-- Search bar for finding projects
-- Filter controls (status, date range)
+  - Status indicator with colored icon
+  - Context menu for actions (view, edit, archive)
+- QToolButton for "Create New Project"
+- QLineEdit search bar with live filtering
+- QComboBox and QDateEdit for filtering
 
 **Actions**:
-- Create new project with modal/inline form
-- Click project card to view details
-- Quick jump to order page with project context
-- Edit project details inline
-- Archive/restore projects
-- Search across projects, orders, and products
+- Create new project with QDialog form
+- Double-click project card to view details
+- Context menu actions: View Details, Edit, Archive, Duplicate
+- Search with live filtering as user types
+- Sort by name, date, activity using QHeaderView
 
-#### All Projects Page (`/projects/all/`)
+#### Project List Widget (Alternative View)
 **Layout**:
-- Traditional list/table view of all projects
+- QTableWidget with sortable columns
 - Columns: Name, Description, Status, Orders, Products, Created, Updated
-- Sortable columns
-- Pagination for large project lists
-- Bulk operations toolbar
+- QHeaderView with sorting capabilities
+- Custom QItemDelegate for rich cell content
+- QProgressBar for loading states
 
 **Actions**:
-- Same as overview but optimized for managing many projects
-- Bulk archive/delete operations
-- Export project list
+- Multi-selection with Ctrl/Cmd+click
+- Bulk operations via context menu
+- Export to CSV via File menu
+- Column customization via right-click header
 
-#### Project Detail Page (`/projects/<id>/`)
+#### Project Detail Dialog
 **Layout**:
-- Project header with name, description, status
-- Statistics dashboard:
-  - Total products generated
-  - Total orders placed
-  - Storage consumed
-  - Generation time metrics
-- Recent orders list with status
-- Product gallery filtered to project
-- Featured products management
+- QDialog with tabbed interface (QTabWidget):
+  - **Overview Tab**: Project info and statistics
+  - **Products Tab**: Filtered gallery view
+  - **Orders Tab**: Order history list
+  - **Settings Tab**: Project configuration
+- Statistics display using custom QWidget with charts
+- QPushButton actions: Edit, Archive, Delete, Close
 
 **Actions**:
-- Edit project details
-- Manage featured products
-- Create new order in project context
-- View all products/orders
-- Archive/delete project
+- Edit project details with inline editing
+- Manage featured products with drag-and-drop
+- Create new order with pre-filled project context
+- Switch to gallery mode with project filter active
 
 ### Order Section
 

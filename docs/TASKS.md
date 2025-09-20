@@ -2,15 +2,15 @@
 
 ## Project Status
 **Focus**: Desktop application foundation with PyQt6
-**Last Updated**: 2025-09-20 (Architecture review complete - PyQt6 desktop approach confirmed)
+**Last Updated**: 2025-09-20 (Requirements coverage analysis complete - 12 critical tasks added)
 
 ### Task Summary
 | Status | Count |
 |--------|-------|
-| Total Tasks | 15 |
+| Total Tasks | 27 |
 | Completed | 2 |
 | In Progress | 0 |
-| Todo | 13 |
+| Todo | 25 |
 | Blocked | 0 |
 
 ---
@@ -237,6 +237,198 @@
 
 ---
 
+### TASK-200: Order Management Service [TODO]
+**Priority**: P0 - Critical
+**Dependencies**: TASK-102
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Implement OrderService with parameter expansion logic
+- [ ] Support token expansion syntax: [red,blue,green]
+- [ ] Support parameter interpolation: steps:10..20
+- [ ] Support sub-prompts with || delimiter
+- [ ] Create OrderItem generation from base parameters
+- [ ] Handle parameter validation and normalization
+- [ ] Write comprehensive tests for expansion logic
+
+---
+
+### TASK-201: File Storage System [TODO]
+**Priority**: P0 - Critical
+**Dependencies**: TASK-100
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Implement organized directory structure for products
+- [ ] Create automatic thumbnail generation (small/medium/large)
+- [ ] Add file deduplication using SHA256 hashes
+- [ ] Implement storage quota management
+- [ ] Create file cleanup and maintenance routines
+- [ ] Support multiple file formats (images, videos)
+- [ ] Add file metadata extraction
+
+---
+
+### TASK-202: Provider Service Framework [TODO]
+**Priority**: P0 - Critical
+**Dependencies**: TASK-107
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create abstract provider API client management
+- [ ] Implement API key storage in system keychain
+- [ ] Add rate limiting and quota management
+- [ ] Create error handling and retry logic
+- [ ] Implement provider discovery and registration
+- [ ] Add provider health checking
+- [ ] Write provider integration tests
+
+---
+
+### TASK-203: Project Management UI [TODO]
+**Priority**: P1 - High
+**Dependencies**: TASK-103
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create project overview with grid of project cards
+- [ ] Implement project detail pages with statistics
+- [ ] Add featured product management interface
+- [ ] Create project creation and editing dialogs
+- [ ] Support project status management (active/archived)
+- [ ] Add project search and filtering
+- [ ] Implement project-level settings
+
+---
+
+### TASK-204: Order Creation Interface [TODO]
+**Priority**: P1 - High
+**Dependencies**: TASK-111, TASK-202
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create dynamic parameter form based on provider/model
+- [ ] Implement parameter validation with inline feedback
+- [ ] Add template loading and saving functionality
+- [ ] Create order preview with expansion display
+- [ ] Support batch order submission
+- [ ] Add parameter hints and documentation
+- [ ] Implement form state persistence
+
+---
+
+### TASK-205: Product Gallery Interface [TODO]
+**Priority**: P1 - High
+**Dependencies**: TASK-104, TASK-201
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Implement grid and list view toggles
+- [ ] Add advanced filtering (type, date, project, tags)
+- [ ] Create sorting options (date, size, rating)
+- [ ] Support product selection and bulk operations
+- [ ] Add lazy loading for performance
+- [ ] Implement virtual scrolling for large collections
+- [ ] Create product context menus
+
+---
+
+### TASK-206: Product Viewer Modal [TODO]
+**Priority**: P1 - High
+**Dependencies**: TASK-205
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create full-screen viewing with zoom and pan
+- [ ] Add navigation between products in collection
+- [ ] Implement metadata display sidebar
+- [ ] Create action toolbar (download, favorite, regenerate)
+- [ ] Support keyboard navigation
+- [ ] Add image comparison mode
+- [ ] Implement slideshow functionality
+
+---
+
+### TASK-207: Template System [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-200
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Enable template creation from successful orders
+- [ ] Create template management interface
+- [ ] Support template categorization and tagging
+- [ ] Implement template application to new orders
+- [ ] Add template sharing and export
+- [ ] Create template version management
+- [ ] Support template parameter overrides
+
+---
+
+### TASK-208: Collection Management [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-205
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create user-defined product collections
+- [ ] Implement collection creation and management UI
+- [ ] Add drag-and-drop product organization
+- [ ] Support collection sharing and export
+- [ ] Create smart collections with auto-rules
+- [ ] Implement collection-level operations
+- [ ] Add collection statistics and insights
+
+---
+
+### TASK-209: Advanced Provider Support [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-202
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Implement fal.ai provider factory
+- [ ] Create civitai provider integration
+- [ ] Add provider capability discovery
+- [ ] Support provider-specific features
+- [ ] Implement provider switching logic
+- [ ] Create provider comparison tools
+- [ ] Add provider performance monitoring
+
+---
+
+### TASK-210: Progress Tracking System [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-108, TASK-200
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create real-time generation progress updates
+- [ ] Implement background task monitoring dashboard
+- [ ] Add queue management and prioritization
+- [ ] Support task cancellation and retry
+- [ ] Create progress persistence across app restarts
+- [ ] Add estimated completion time calculations
+- [ ] Implement progress notifications
+
+---
+
+### TASK-211: Settings and Admin Interface [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-103
+**Human Review**: ❌ Not Reviewed
+
+**Acceptance Criteria**:
+- [ ] Create application preferences dialog
+- [ ] Implement provider configuration management
+- [ ] Add storage location and quota settings
+- [ ] Create system diagnostics panel
+- [ ] Support theme and appearance settings
+- [ ] Add keyboard shortcuts configuration
+- [ ] Implement backup and restore functionality
+
+---
+
 ### TASK-113: PyInstaller Packaging [TODO]
 **Priority**: P3 - Low
 **Dependencies**: TASK-100
@@ -280,20 +472,16 @@
 
 ## 🔄 Backlog
 
-### Phase 2: Additional Features
+### Phase 3: Advanced Features
 
-- Additional Providers (fal.ai, Civitai)
-- Collections Management UI
-- Template System
-- Advanced Search and Filtering
-- Batch Operations
 - Export/Import Functionality
 - Statistics Dashboard
-- User Preferences Dialog
-- Keyboard Shortcuts
 - Video Player Widget
+- Batch Operations (advanced)
+- Advanced Search with AI
+- Automation and Workflows
 
-### Phase 3: Polish & Distribution
+### Phase 4: Polish & Distribution
 
 - Performance Optimization
 - Memory Management
@@ -302,6 +490,7 @@
 - Crash Reporting
 - User Documentation
 - Demo Content
+- Internationalization
 
 ---
 
