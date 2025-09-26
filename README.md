@@ -1,6 +1,6 @@
-# Art Factory
+# Art Factory Desktop
 
-A PyQt6 desktop application for managing AI media generation, remixing, and refinement of images, videos, and multimedia content from various AI services.
+A powerful PyQt6 desktop application for managing AI-generated art, supporting multiple providers and advanced generation workflows.
 
 ## Overview
 
@@ -28,8 +28,8 @@ Art Factory is designed for local deployment on macOS as a single-user tool that
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd art-factory-vibe
+git clone https://github.com/bendavieshe3/art-factory-desktop.git
+cd art-factory-desktop
 
 # Create and activate virtual environment
 python3 -m venv venv
@@ -263,4 +263,10 @@ This will show:
 
 ## Support
 
-For issues and feature requests, please check the task management system in `TASKS.md` or create appropriate entries following the project's task management strategy.
+For issues and feature requests, please use the [GitHub Issues](https://github.com/bendavieshe3/art-factory-desktop/issues) page or check the task management system in `TASKS.md`.
+
+## Related Projects
+
+- [art-factory](https://github.com/bendavieshe3/art-factory) - Web-based version of Art Factory
+- [presto](https://github.com/bendavieshe3/presto) - Command line tool for AI model invocation
+- [draw-things-tool](https://github.com/bendavieshe3/draw-things-tool) - Batch generation for Draw Things app

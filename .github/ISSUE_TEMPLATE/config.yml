@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/bendavieshe3/art-factory-desktop/tree/main/docs
+    about: Check the documentation for usage guides and technical details
+  - name: Task Board
+    url: https://github.com/bendavieshe3/art-factory-desktop/blob/main/docs/TASKS.md
+    about: View current development tasks and priorities
+  - name: Discussion
+    url: https://github.com/bendavieshe3/art-factory-desktop/discussions
+    about: For general questions and discussions about Art Factory Desktop
