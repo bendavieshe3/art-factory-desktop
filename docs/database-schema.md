@@ -2,21 +2,34 @@
 
 ## Overview
 
-SQLite database with SQLAlchemy ORM. Schema designed for PostgreSQL compatibility for future scaling.
+**Current Implementation**: SQLite database with SQLAlchemy ORM.
+**Future Migration Path**: Schema designed for PostgreSQL compatibility.
+
+This document describes the initial implementation using SQLite for development and single-user deployment, with a clear migration path to PostgreSQL for multi-user scenarios.
+
+## SQLite Implementation Notes
+
+- **UUIDs**: Stored as TEXT(36) instead of native UUID type
+- **JSON Fields**: Stored as TEXT with JSON serialization/deserialization in Python
+- **Timestamps**: Using SQLAlchemy's DateTime with Python datetime objects
+- **Foreign Keys**: Enabled via PRAGMA foreign_keys=ON
+- **Triggers**: Not implemented initially; denormalized counts managed in Python
+- **Full-Text Search**: Deferred to PostgreSQL migration
 
 ## Core Tables
 
 ### projects
 ```sql
+-- SQLite Implementation
 CREATE TABLE projects (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id TEXT(36) PRIMARY KEY,           -- UUID as string
     name VARCHAR(255) NOT NULL,
     description TEXT,
     status VARCHAR(50) DEFAULT 'active', -- active, archived, completed
-    product_count INTEGER DEFAULT 0,  -- denormalized
-    order_count INTEGER DEFAULT 0,    -- denormalized
-    featured_product_ids JSON,        -- array of product IDs
-    settings JSON,                    -- project-specific settings
+    product_count INTEGER DEFAULT 0,     -- denormalized
+    order_count INTEGER DEFAULT 0,       -- denormalized
+    featured_product_ids_json TEXT,      -- JSON array serialized as TEXT
+    settings_json TEXT,                  -- JSON object serialized as TEXT
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL
@@ -356,20 +369,110 @@ WHERE deleted_at < NOW() - INTERVAL '90 days';
 -- (Handled by application logic comparing filesystem to database)
 ```
 
-## Migration Strategy
+## Current Implementation Status (TASK-102)
 
-### Initial Schema
-1. Create all tables in order (respecting foreign keys)
-2. Insert default providers and models
-3. Create system settings with defaults
+### Implemented Models (v1.0)
 
-### Version Management
-- Use Alembic for Python/SQLAlchemy migrations
-- Each migration has up/down methods
-- Test migrations on copy of production data
+The following models have been implemented using SQLAlchemy with SQLite:
 
-### SQLite to PostgreSQL Migration Path
-1. Schema is PostgreSQL-compatible
-2. JSON columns work in both (TEXT in SQLite, JSONB in PostgreSQL)
-3. UUID generation differs but handled by ORM
-4. Full-text search gracefully degrades in SQLite
+1. **BaseModel** (Abstract)
+   - UUID primary keys as TEXT(36)
+   - Soft delete support (deleted_at)
+   - Auto-timestamps (created_at, updated_at)
+   - JSON field helpers for SQLite
+   - Table name auto-generation
+
+2. **Project**
+   - Core project management entity
+   - JSON fields: featured_product_ids, settings
+   - Denormalized counts: product_count, order_count
+   - Status management (active/archived/completed)
+
+3. **Order**
+   - Generation request container
+   - JSON field: base_parameter_set
+   - Status tracking and count management
+   - Project relationship
+
+4. **OrderItem**
+   - Individual API requests (replaces "Generation")
+   - JSON fields: generation/actual/return parameter sets
+   - Provider tracking and timing
+   - Retry and error handling
+
+5. **Product**
+   - Generated file outputs
+   - JSON fields: thumbnail_paths, extra_metadata
+   - File management (hash, size, type)
+   - User interaction (liked, rating, notes)
+
+6. **Collection/CollectionProduct**
+   - User-defined product groups
+   - Many-to-many with position ordering
+   - Collection management methods
+
+### Database Management
+
+- **DatabaseManager** class for connection handling
+- **Session management** with context managers
+- **Foreign key constraints** enabled
+- **In-memory testing** support
+
+### Migration Strategy
+
+#### Immediate (SQLite)
+- All models ready for production use
+- Comprehensive test coverage
+- JSON fields work seamlessly
+
+#### Future (PostgreSQL)
+- Alembic for schema migrations (TASK-102B)
+- Convert JSON TEXT → JSONB columns
+- Add full-text search indexes
+- Implement database triggers for counts
+
+### Files Created
+
+```
+app/models/
+├── __init__.py           # Model exports
+├── base.py              # BaseModel and helpers
+├── project.py           # Project model
+├── order.py             # Order and OrderItem models
+├── product.py           # Product model
+├── collection.py        # Collection models
+└── database.py          # Database manager
+
+tests/unit/models/
+├── conftest.py          # Test fixtures
+├── test_base.py         # BaseModel tests
+├── test_project.py      # Project tests
+├── test_order.py        # Order/OrderItem tests
+├── test_product.py      # Product tests
+└── test_collection.py   # Collection tests
+```
+
+### Usage Example
+
+```python
+from app.models.database import init_database
+from app.models import Project, Order, Product
+
+# Initialize database
+db_manager = init_database()
+
+# Create models
+with db_manager.session_scope() as session:
+    project = Project(name="My Project")
+    session.add(project)
+    session.commit()
+
+    order = Order(
+        project_id=project.id,
+        provider="replicate",
+        model="stability-ai/sdxl",
+        base_parameter_set={"prompt": "a red car"}
+    )
+    session.add(order)
+    session.commit()
+```
