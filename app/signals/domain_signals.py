@@ -41,6 +41,7 @@ class DomainSignals(QObject):
     product_created = pyqtSignal(str)  # product_id
     product_liked = pyqtSignal(str)  # product_id
     product_deleted = pyqtSignal(str)  # product_id
+    product_preview_requested = pyqtSignal(str)  # product_id
 
     # Project events
     project_changed = pyqtSignal(str)  # project_id

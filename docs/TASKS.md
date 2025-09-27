@@ -17,25 +17,36 @@
 
 ## 🚀 Active Tasks
 
-**No active tasks** - TASK-104 Gallery Widget completed successfully
-**Status**: Ready for next task selection from P0/P1 priorities
+### TASK-105: Controller Layer [IN PROGRESS]
+**Progress**: 0% - Just started
+**Next Steps**: Create MainController base class and signal bus integration
 
 ---
 
 ## 📋 Todo
 
-### TASK-105: Controller Layer [TODO]
+### TASK-105: Controller Layer [IN PROGRESS]
 **Priority**: P1 - High
-**Dependencies**: TASK-101, TASK-102
-**Human Review**: ❌ Not Reviewed
+**Dependencies**: TASK-101 ✅, TASK-102 ✅
+**Human Review**: ✅ Reviewed
+**Started**: 2025-09-27
 
 **Acceptance Criteria**:
-- [ ] Create MainController for app coordination
-- [ ] Implement GenerationController
-- [ ] Create GalleryController
-- [ ] Add ProjectController
-- [ ] Connect controllers to signals
-- [ ] Implement controller tests
+- [ ] Create MainController for application coordination (singleton with signal bus)
+- [ ] Implement GenerationController for AI workflow (order → generation → products)
+- [ ] Create GalleryController for product management (data loading, selection, file ops)
+- [ ] Add ProjectController for project lifecycle (CRUD, switching, project-specific data)
+- [ ] Connect controllers to signal bus with clear ownership patterns
+- [ ] Implement controller tests (unit tests with mocked dependencies, signal testing)
+
+**Implementation Specifications**:
+- **MainController**: Central coordinator managing other controllers, application state, cross-cutting concerns
+- **GenerationController**: Parameter panel → OrderService → Generation workflow → Progress tracking
+- **GalleryController**: Product data loading, selection state, file import/export, search/filtering
+- **ProjectController**: Project CRUD, active project management, project-specific data coordination
+- **Signal Integration**: Each controller owns specific signal groups, communicate via signal bus
+- **Testing**: pytest-qt for signal testing, mocked dependencies, integration tests for coordination
+- **Architecture**: MVC pattern with controllers mediating between views and services
 
 ---
 

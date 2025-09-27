@@ -46,6 +46,9 @@ class UISignals(QObject):
     page_changed = pyqtSignal(int)  # page number for paginated views
     search_requested = pyqtSignal(str)  # search query
 
+    # File operations
+    files_imported = pyqtSignal(list)  # list of file paths imported
+
     def __init__(self):
         """Initialize UISignals."""
         super().__init__()
