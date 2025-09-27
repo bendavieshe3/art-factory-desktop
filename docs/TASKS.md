@@ -7,8 +7,8 @@
 ### Task Summary
 | Status | Count |
 |--------|-------|
-| Total Tasks | 27 |
-| Completed | 6 |
+| Total Tasks | 28 |
+| Completed | 7 |
 | In Progress | 0 |
 | Todo | 21 |
 | Blocked | 0 |
@@ -17,27 +17,11 @@
 
 ## 🚀 Active Tasks
 
-*No tasks currently in progress*
+**No active tasks** - Ready for next task selection
 
 ---
 
 ## 📋 Todo
-
-### TASK-103: Main Window and Layout [TODO]
-**Priority**: P1 - High
-**Dependencies**: TASK-100
-**Human Review**: ❌ Not Reviewed
-
-**Acceptance Criteria**:
-- [ ] Create QMainWindow with menu bar
-- [ ] Implement dockable panels layout
-- [ ] Add gallery as central widget
-- [ ] Create parameter panel dock
-- [ ] Add progress dock at bottom
-- [ ] Implement view state persistence
-- [ ] Add dark/light theme support
-
----
 
 ### TASK-104: Gallery Widget Implementation [TODO]
 **Priority**: P1 - High
@@ -385,7 +369,56 @@
 
 ---
 
+### TASK-114: Dark Theme Visual Refinement [TODO]
+**Priority**: P2 - Medium
+**Dependencies**: TASK-103
+**Human Review**: ✅ Reviewed
+**Created**: 2025-09-27
+
+**Acceptance Criteria**:
+- [ ] Fix project card styling in dark theme (contrast and borders)
+- [ ] Improve text readability across all panels in dark theme
+- [ ] Adjust button colors and hover states for dark backgrounds
+- [ ] Fix dropdown and combo box styling in dark theme
+- [ ] Ensure status indicators are visible in dark theme
+- [ ] Update progress bars and group boxes for better dark theme appearance
+- [ ] Test and refine scroll bar styling in dark theme
+- [ ] Ensure all icons and symbols are visible in dark theme
+
+**Implementation Notes**:
+- Defer implementation until after core interface stabilizes
+- Default theme should remain "light" until dark theme is polished
+- Consider using Qt's built-in Fusion style as base for dark theme
+- May need custom widget painting for some components
+- Test on both standard and Retina displays
+
+---
+
 ## ✅ Completed Tasks
+
+### TASK-103: Main Window and Layout [COMPLETED]
+**Priority**: P1 - High
+**Dependencies**: TASK-100
+**Completed**: 2025-09-27
+
+**Delivered**:
+- ✅ Created QMainWindow with comprehensive menu bar (File, Edit, View, Tools, Help)
+- ✅ Implemented dockable panels with proper workflow separation
+- ✅ Added projects overview as central widget (default view)
+- ✅ Created parameter panel (left dock) for generation controls
+- ✅ Created metadata panel (right dock) for product inspection
+- ✅ Added progress panel (bottom dock) for generation monitoring
+- ✅ Implemented view state persistence using QSettings
+- ✅ Added dark/light theme support with toggle (light as default)
+- ✅ Added projects-to-gallery view switching mechanism
+
+**Notes**:
+- Implemented spatial workflow as requested: left for creation, right for inspection
+- Responsive grid layout for project cards
+- Signal bus integration throughout
+- Dark theme needs refinement (see TASK-114)
+
+---
 
 ### TASK-102: Database Models Implementation [COMPLETED]
 **Completed**: 2025-09-27
