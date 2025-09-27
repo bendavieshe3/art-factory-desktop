@@ -53,7 +53,7 @@ class GenerationController(BaseController):
     def order_service(self):
         """Lazy loading of OrderService to avoid circular imports."""
         if self._order_service is None:
-            from services.order_service import OrderService
+            from ..services.order_service import OrderService
 
             self._order_service = OrderService()
         return self._order_service

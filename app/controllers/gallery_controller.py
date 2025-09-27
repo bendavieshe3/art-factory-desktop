@@ -62,7 +62,7 @@ class GalleryController(BaseController):
     def product_service(self):
         """Lazy loading of ProductService to avoid circular imports."""
         if self._product_service is None:
-            from services.product_service import ProductService
+            from ..services.product_service import ProductService
             self._product_service = ProductService()
         return self._product_service
 
