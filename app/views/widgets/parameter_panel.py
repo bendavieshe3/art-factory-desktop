@@ -49,7 +49,7 @@ class ParameterPanel(QWidget):
         layout.setSpacing(12)
 
         # Title
-        title_label = QLabel("Generation Parameters")
+        title_label = QLabel("Generate Product")
         title_label.setStyleSheet(
             "font-weight: bold; font-size: 14px; color: #333;"
         )

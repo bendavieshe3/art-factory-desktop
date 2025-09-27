@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
     QStatusBar,
     QDockWidget,
     QStackedWidget,
+    QSizePolicy,
 )
 from PyQt6.QtCore import Qt, QSettings
 from PyQt6.QtGui import QAction
@@ -23,6 +24,7 @@ from .widgets import (
     MetadataPanel,
     ProgressPanel,
     ProjectsOverview,
+    PreviewPanel,
 )
 
 
@@ -34,9 +36,13 @@ class MainWindow(QMainWindow):
         self.signal_bus = signal_bus
         self.settings = QSettings("Art Factory", "Desktop")
         self._current_theme = "light"
+        self._current_screen = "projects"  # projects, generate, gallery
+        self._generation_active = False
+        self._selected_product = None
 
         # Initialize components
         self._setup_window()
+        self._create_navigation_bar()
         self._create_dockable_panels()
         self._create_menu_bar()
         self._create_central_widget()
@@ -44,6 +50,7 @@ class MainWindow(QMainWindow):
         self._connect_signals()
         self._restore_window_state()
         self._apply_theme()
+        self._switch_screen("projects")  # Set initial screen
 
     def _setup_window(self):
         """Configure basic window properties."""
@@ -51,11 +58,83 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1400, 900)
         self.setMinimumSize(1000, 700)
 
+    def _create_navigation_bar(self):
+        """Create top navigation bar for screen switching."""
+        # Create navigation toolbar
+        nav_toolbar = self.addToolBar("Navigation")
+        nav_toolbar.setMovable(False)
+        nav_toolbar.setFloatable(False)
+        nav_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        nav_toolbar.setStyleSheet("""
+            QToolBar {
+                background-color: #f8f9fa;
+                border: none;
+                border-bottom: 1px solid #e0e0e0;
+                spacing: 0px;
+                padding: 4px;
+            }
+            QToolButton {
+                background-color: transparent;
+                color: #666666;
+                border: none;
+                padding: 8px 20px;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 4px;
+                margin: 2px;
+            }
+            QToolButton:hover {
+                background-color: #e9ecef;
+                color: #495057;
+            }
+            QToolButton:checked {
+                background-color: #007AFF;
+                color: white;
+            }
+        """)
+
+        # Create navigation actions
+        self.projects_nav_action = QAction("Projects", self)
+        self.projects_nav_action.setCheckable(True)
+        self.projects_nav_action.setChecked(True)
+        self.projects_nav_action.triggered.connect(
+            lambda: self._switch_screen("projects")
+        )
+        nav_toolbar.addAction(self.projects_nav_action)
+
+        self.generate_nav_action = QAction("Generate", self)
+        self.generate_nav_action.setCheckable(True)
+        self.generate_nav_action.triggered.connect(
+            lambda: self._switch_screen("generate")
+        )
+        nav_toolbar.addAction(self.generate_nav_action)
+
+        self.gallery_nav_action = QAction("Gallery", self)
+        self.gallery_nav_action.setCheckable(True)
+        self.gallery_nav_action.triggered.connect(
+            lambda: self._switch_screen("gallery")
+        )
+        nav_toolbar.addAction(self.gallery_nav_action)
+
+        # Add spacer to push theme toggle to the right
+        spacer = QWidget()
+        spacer.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred
+        )
+        nav_toolbar.addWidget(spacer)
+
+        # Add theme toggle to navigation bar
+        self.theme_nav_action = QAction("🌙", self)
+        self.theme_nav_action.setToolTip("Toggle Dark Theme")
+        self.theme_nav_action.triggered.connect(self._toggle_theme)
+        nav_toolbar.addAction(self.theme_nav_action)
+
     def _create_dockable_panels(self):
         """Create and configure dockable panels."""
-        # Parameter panel (left dock)
+        # Generate Product panel (left dock) - renamed from Parameters
         self.parameter_panel = ParameterPanel()
-        self.parameter_dock = QDockWidget("Parameters", self)
+        self.parameter_dock = QDockWidget("Generate Product", self)
         self.parameter_dock.setWidget(self.parameter_panel)
         self.parameter_dock.setFeatures(
             QDockWidget.DockWidgetFeature.DockWidgetMovable
@@ -65,7 +144,7 @@ class MainWindow(QMainWindow):
             Qt.DockWidgetArea.LeftDockWidgetArea, self.parameter_dock
         )
 
-        # Metadata panel (right dock)
+        # Product Details panel (right dock) - context-sensitive visibility
         self.metadata_panel = MetadataPanel()
         self.metadata_dock = QDockWidget("Product Details", self)
         self.metadata_dock.setWidget(self.metadata_panel)
@@ -77,9 +156,9 @@ class MainWindow(QMainWindow):
             Qt.DockWidgetArea.RightDockWidgetArea, self.metadata_dock
         )
 
-        # Progress panel (bottom dock)
+        # Generation Progress panel (bottom dock) - shown when generation active
         self.progress_panel = ProgressPanel()
-        self.progress_dock = QDockWidget("Progress", self)
+        self.progress_dock = QDockWidget("Generation Progress", self)
         self.progress_dock.setWidget(self.progress_panel)
         self.progress_dock.setFeatures(
             QDockWidget.DockWidgetFeature.DockWidgetMovable
@@ -147,27 +226,31 @@ class MainWindow(QMainWindow):
 
         view_menu.addSeparator()
 
-        # View switching
-        self.projects_view_action = QAction("Projects View", self)
-        self.projects_view_action.setShortcut("Ctrl+1")
-        self.projects_view_action.setCheckable(True)
-        self.projects_view_action.setChecked(True)
-        self.projects_view_action.triggered.connect(
-            lambda: self._switch_view("projects")
+        # Screen switching
+        projects_screen_action = QAction("Projects Screen", self)
+        projects_screen_action.setShortcut("Ctrl+1")
+        projects_screen_action.triggered.connect(
+            lambda: self._switch_screen("projects")
         )
-        view_menu.addAction(self.projects_view_action)
+        view_menu.addAction(projects_screen_action)
 
-        self.gallery_view_action = QAction("Gallery View", self)
-        self.gallery_view_action.setShortcut("Ctrl+2")
-        self.gallery_view_action.setCheckable(True)
-        self.gallery_view_action.triggered.connect(
-            lambda: self._switch_view("gallery")
+        generate_screen_action = QAction("Generate Screen", self)
+        generate_screen_action.setShortcut("Ctrl+2")
+        generate_screen_action.triggered.connect(
+            lambda: self._switch_screen("generate")
         )
-        view_menu.addAction(self.gallery_view_action)
+        view_menu.addAction(generate_screen_action)
+
+        gallery_screen_action = QAction("Gallery Screen", self)
+        gallery_screen_action.setShortcut("Ctrl+3")
+        gallery_screen_action.triggered.connect(
+            lambda: self._switch_screen("gallery")
+        )
+        view_menu.addAction(gallery_screen_action)
 
         view_menu.addSeparator()
 
-        # Theme toggle
+        # Theme toggle (moved to navigation bar, but keep in menu too)
         self.theme_action = QAction("Dark Theme", self)
         self.theme_action.setCheckable(True)
         self.theme_action.triggered.connect(self._toggle_theme)
@@ -205,16 +288,20 @@ class MainWindow(QMainWindow):
         help_menu.addAction(about_action)
 
     def _create_central_widget(self):
-        """Create central widget with view switching."""
-        # Create stacked widget for view switching
+        """Create central widget with screen switching."""
+        # Create stacked widget for screen switching
         self.central_stack = QStackedWidget()
         self.setCentralWidget(self.central_stack)
 
-        # Projects overview (default view)
+        # Projects screen - projects overview
         self.projects_overview = ProjectsOverview()
         self.central_stack.addWidget(self.projects_overview)
 
-        # Gallery view placeholder (to be implemented later)
+        # Generate screen - preview panel
+        self.preview_panel = PreviewPanel()
+        self.central_stack.addWidget(self.preview_panel)
+
+        # Gallery screen - placeholder (to be implemented later)
         gallery_placeholder = QWidget()
         gallery_layout = QVBoxLayout(gallery_placeholder)
         gallery_label = QLabel("Gallery View")
@@ -243,9 +330,12 @@ class MainWindow(QMainWindow):
         gallery_layout.addWidget(gallery_subtitle)
         self.central_stack.addWidget(gallery_placeholder)
 
-        # Set default view (projects)
-        self.central_stack.setCurrentIndex(0)
-        self._current_view = "projects"
+        # Screen indices for easy reference
+        self._screen_indices = {
+            "projects": 0,
+            "generate": 1,
+            "gallery": 2,
+        }
 
     def _create_status_bar(self):
         """Create status bar."""
@@ -325,6 +415,11 @@ class MainWindow(QMainWindow):
         )
         self.projects_overview.view_switch_requested.connect(self._switch_view)
 
+        # Connect preview panel to parameter panel for live updates
+        self.parameter_panel.generation_requested.connect(
+            self._on_preview_generation_requested
+        )
+
         # Emit initial view changed signal
         self.signal_bus.ui.view_changed.emit("projects")
 
@@ -351,20 +446,66 @@ class MainWindow(QMainWindow):
         """Handle product created signal."""
         self.statusBar().showMessage(f"Product created: {product_id}", 3000)
 
-    def _switch_view(self, view_name):
-        """Switch between different central views."""
-        if view_name == "projects":
-            self.central_stack.setCurrentIndex(0)
-            self.projects_view_action.setChecked(True)
-            self.gallery_view_action.setChecked(False)
-        elif view_name == "gallery":
-            self.central_stack.setCurrentIndex(1)
-            self.projects_view_action.setChecked(False)
-            self.gallery_view_action.setChecked(True)
+    def _switch_screen(self, screen_name):
+        """Switch between different screens with smart panel management."""
+        if screen_name not in self._screen_indices:
+            return
 
-        self._current_view = view_name
-        self.signal_bus.ui.view_changed.emit(view_name)
-        self.statusBar().showMessage(f"Switched to {view_name} view", 2000)
+        # Update navigation buttons
+        self.projects_nav_action.setChecked(screen_name == "projects")
+        self.generate_nav_action.setChecked(screen_name == "generate")
+        self.gallery_nav_action.setChecked(screen_name == "gallery")
+
+        # Switch central widget
+        screen_index = self._screen_indices[screen_name]
+        self.central_stack.setCurrentIndex(screen_index)
+
+        # Manage panel visibility based on screen
+        self._manage_panel_visibility(screen_name)
+
+        # Update current screen
+        self._current_screen = screen_name
+        self.signal_bus.ui.view_changed.emit(screen_name)
+        self.statusBar().showMessage(f"Switched to {screen_name} screen", 2000)
+
+    def _manage_panel_visibility(self, screen_name):
+        """Manage panel visibility based on current screen."""
+        if screen_name == "projects":
+            # Projects screen: only show projects overview
+            self.parameter_dock.hide()
+            if not self._selected_product:
+                self.metadata_dock.hide()
+            if not self._generation_active:
+                self.progress_dock.hide()
+
+        elif screen_name == "generate":
+            # Generate screen: show generate panel and preview
+            self.parameter_dock.show()
+            if not self._selected_product:
+                self.metadata_dock.hide()
+            if not self._generation_active:
+                self.progress_dock.hide()
+
+        elif screen_name == "gallery":
+            # Gallery screen: hide generation panels
+            self.parameter_dock.hide()
+            if not self._selected_product:
+                self.metadata_dock.hide()
+            if not self._generation_active:
+                self.progress_dock.hide()
+
+        # Always show panels based on context regardless of screen
+        if self._selected_product:
+            self.metadata_dock.show()
+        if self._generation_active:
+            self.progress_dock.show()
+
+    def _switch_view(self, view_name):
+        """Legacy method - redirect to screen switching."""
+        if view_name == "gallery":
+            self._switch_screen("gallery")
+        else:
+            self._switch_screen("projects")
 
     def _toggle_theme(self):
         """Toggle between light and dark themes."""
@@ -655,3 +796,44 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(
             f"Edit project: {project_id} - Not implemented yet", 2000
         )
+
+    def _on_preview_generation_requested(self, parameters: dict):
+        """Handle generation request from parameter panel (updates preview)."""
+        # Update preview panel with current settings
+        prompt = parameters.get("prompt", "")
+        model = parameters.get("model", "")
+        self.preview_panel.update_preview(prompt, model, parameters)
+
+        # Forward to regular generation handler
+        self._on_generation_requested(parameters)
+
+    def set_product_selected(self, product_id: str, product_data: dict = None):
+        """Set a product as selected - shows Product Details panel."""
+        self._selected_product = product_id
+        if product_data:
+            self.metadata_panel.set_product(product_data)
+
+        # Update panel visibility for current screen
+        self._manage_panel_visibility(self._current_screen)
+
+        self.statusBar().showMessage(f"Selected product: {product_id}", 2000)
+
+    def clear_product_selection(self):
+        """Clear product selection - hides Product Details panel."""
+        self._selected_product = None
+        self.metadata_panel.clear_selection()
+
+        # Update panel visibility for current screen
+        self._manage_panel_visibility(self._current_screen)
+
+    def set_generation_active(self, active: bool):
+        """Set generation activity state - shows/hides Progress panel."""
+        self._generation_active = active
+
+        # Update panel visibility for current screen
+        self._manage_panel_visibility(self._current_screen)
+
+        if active:
+            self.statusBar().showMessage("Generation started", 2000)
+        else:
+            self.statusBar().showMessage("Generation completed", 2000)

@@ -195,25 +195,6 @@ class ProjectsOverview(QWidget):
 
         header_layout.addStretch()
 
-        # View switcher
-        self.gallery_button = QPushButton("Gallery View")
-        self.gallery_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #007AFF;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #0056CC;
-            }
-        """
-        )
-        header_layout.addWidget(self.gallery_button)
-
         # Create project button
         self.create_button = QPushButton("+ New Project")
         self.create_button.setStyleSheet(
@@ -294,9 +275,6 @@ class ProjectsOverview(QWidget):
     def _connect_signals(self):
         """Connect internal signals."""
         self.create_button.clicked.connect(self.project_create_requested.emit)
-        self.gallery_button.clicked.connect(
-            lambda: self.view_switch_requested.emit("gallery")
-        )
         self.search_edit.textChanged.connect(self._filter_projects)
         self.status_combo.currentTextChanged.connect(self._filter_projects)
 
