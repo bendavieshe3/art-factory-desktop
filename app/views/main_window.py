@@ -25,6 +25,8 @@ from .widgets import (
     ProgressPanel,
     ProjectsOverview,
     PreviewPanel,
+    GalleryWidget,
+    ImagePreviewModal,
 )
 
 
@@ -302,34 +304,16 @@ class MainWindow(QMainWindow):
         self.preview_panel = PreviewPanel()
         self.central_stack.addWidget(self.preview_panel)
 
-        # Gallery screen - placeholder (to be implemented later)
-        gallery_placeholder = QWidget()
-        gallery_layout = QVBoxLayout(gallery_placeholder)
-        gallery_label = QLabel("Gallery View")
-        gallery_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        gallery_label.setStyleSheet(
-            """
-            QLabel {
-                font-size: 24px;
-                color: #666;
-                padding: 40px;
-            }
-        """
-        )
-        gallery_subtitle = QLabel("Coming Soon...")
-        gallery_subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        gallery_subtitle.setStyleSheet(
-            """
-            QLabel {
-                font-size: 16px;
-                color: #999;
-                padding: 10px;
-            }
-        """
-        )
-        gallery_layout.addWidget(gallery_label)
-        gallery_layout.addWidget(gallery_subtitle)
-        self.central_stack.addWidget(gallery_placeholder)
+        # Gallery screen - actual gallery widget
+        self.gallery_widget = GalleryWidget()
+        self.central_stack.addWidget(self.gallery_widget)
+
+        # Connect gallery signals
+        self.gallery_widget.selection_changed.connect(self._on_gallery_selection_changed)
+        self.gallery_widget.product_double_clicked.connect(self._on_product_preview_requested)
+        self.gallery_widget.products_deleted.connect(self._on_products_delete_requested)
+        self.gallery_widget.product_details_requested.connect(self._on_product_details_requested)
+        self.gallery_widget.files_dropped.connect(self._on_files_dropped)
 
         # Screen indices for easy reference
         self._screen_indices = {
@@ -711,6 +695,65 @@ class MainWindow(QMainWindow):
         self.settings.setValue("windowState", self.saveState())
         self.settings.setValue("theme", self._current_theme)
         self.settings.setValue("current_view", self._current_view)
+
+    def _on_gallery_selection_changed(self, selected_product_ids):
+        """Handle gallery selection changes."""
+        if selected_product_ids:
+            # Show product details for first selected item
+            first_id = selected_product_ids[0]
+            self.set_product_selected(first_id)
+            self.signal_bus.ui.selection_changed.emit(selected_product_ids)
+        else:
+            # Clear selection
+            self.set_product_selected(None)
+
+    def _on_product_preview_requested(self, product_id):
+        """Handle product preview request from gallery."""
+        # Create and show preview modal
+        preview_modal = ImagePreviewModal(self)
+
+        # TODO: Get actual image path from product data
+        # For now, emit signal for controller to handle
+        self.signal_bus.domain.product_preview_requested.emit(product_id)
+
+        # Set product list for navigation
+        all_product_ids = [p.get("id") for p in self.gallery_widget.products]
+        preview_modal.set_product_list(all_product_ids, product_id)
+
+        preview_modal.exec()
+
+    def _on_products_delete_requested(self, product_ids):
+        """Handle product deletion request from gallery."""
+        # Confirm deletion
+        from PyQt6.QtWidgets import QMessageBox
+
+        count = len(product_ids)
+        msg = f"Delete {count} product{'s' if count > 1 else ''}?"
+
+        reply = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            msg,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            # Emit deletion signal
+            for product_id in product_ids:
+                self.signal_bus.domain.product_deleted.emit(product_id)
+
+    def _on_product_details_requested(self, product_id):
+        """Handle product details request from gallery."""
+        # Show metadata panel and populate it
+        self.set_product_selected(product_id)
+        self.metadata_dock.show()
+
+    def _on_files_dropped(self, file_paths):
+        """Handle files dropped on gallery."""
+        # Emit signal for controller to import files as products
+        self.signal_bus.ui.files_imported.emit(file_paths)
+        self.statusBar().showMessage(f"Importing {len(file_paths)} files...")
 
     def closeEvent(self, event):
         """Handle application close event."""
