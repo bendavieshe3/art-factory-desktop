@@ -92,7 +92,10 @@ black app/ tests/ && flake8 app/ tests/ && pytest
 black app/ tests/ && flake8 app/ tests/ && pytest
 
 # 3. Update TASKS.md (mark completed, move to completed section)
-# 4. Commit with descriptive message
+# 4. ALWAYS check git status before moving to next task
+git status
+
+# 5. Commit with descriptive message (MANDATORY before next task)
 git add -A && git commit -m "Complete TASK-XXX: Description
 
 - Implementation details
@@ -102,6 +105,16 @@ git add -A && git commit -m "Complete TASK-XXX: Description
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# 6. Verify clean working tree
+git status  # Should show "nothing to commit, working tree clean"
+```
+
+### Pre-Task Checklist
+```bash
+# ALWAYS run before starting new task:
+git status                    # Ensure clean working tree
+git log --oneline -3         # Review recent commits
 ```
 
 ### Git Workflow (Solo Developer)
@@ -124,6 +137,7 @@ git merge feature/task-xxx-description
 # new-task = "!f() { git checkout -b feature/task-$1; }; f"
 # task-commit = "!f() { git add -A && git commit -m \"$1\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\"; }; f"
 # wip = "!git add -A && git commit -m \"Work in progress\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\""
+# status-check = "!echo '=== Git Status Check ===' && git status && echo '' && echo '=== Recent Commits ===' && git log --oneline -3"
 ```
 
 ### Signal Architecture Usage
