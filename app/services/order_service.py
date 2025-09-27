@@ -15,10 +15,12 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ..models import Order, OrderItem
 from ..models.database import session_scope
+from ..factories import factory_registry, FactoryNotFoundError, ValidationError
+from ..factories.base import ValidationResult as FactoryValidationResult
 
 
 class ValidationResult(NamedTuple):
-    """Result of parameter validation."""
+    """Result of parameter validation (legacy - use FactoryValidationResult for new code)."""
 
     is_valid: bool
     errors: List[str]
@@ -196,6 +198,113 @@ class OrderService:
                         errors.append(f"'{key}' has invalid range expansion syntax")
 
         return ValidationResult(is_valid=len(errors) == 0, errors=errors, warnings=warnings)
+
+    def validate_with_factory(
+        self, params: Dict[str, Any], provider: str, model: str
+    ) -> FactoryValidationResult:
+        """
+        Validate parameters using factory-specific validation.
+
+        Args:
+            params: Parameters to validate
+            provider: Provider name (e.g., 'replicate', 'fal')
+            model: Model name (e.g., 'stability-ai/sdxl')
+
+        Returns:
+            FactoryValidationResult with detailed validation information
+
+        Raises:
+            FactoryNotFoundError: If no factory is registered for provider/model
+        """
+        try:
+            # Get factory for validation
+            factory = factory_registry.get_factory(provider, model)
+
+            # Use factory's comprehensive validation
+            return factory.validate_parameters_complete(params)
+
+        except FactoryNotFoundError:
+            # If no factory found, fall back to basic validation
+            basic_result = self.validate_base_parameters(params)
+
+            # Convert to FactoryValidationResult format
+            factory_result = FactoryValidationResult(is_valid=basic_result.is_valid)
+
+            for error in basic_result.errors:
+                factory_result.add_error("parameter", error)
+
+            for warning in basic_result.warnings:
+                factory_result.add_warning("parameter", warning)
+
+            # Add info about missing factory
+            factory_result.add_info(
+                "factory",
+                f"No factory found for {provider}/{model}, using basic validation"
+            )
+
+            return factory_result
+
+    def validate_with_factory_fast(
+        self, params: Dict[str, Any], provider: str, model: str
+    ) -> FactoryValidationResult:
+        """
+        Fast factory-based validation for UI responsiveness.
+
+        Args:
+            params: Parameters to validate
+            provider: Provider name
+            model: Model name
+
+        Returns:
+            FactoryValidationResult with basic validation results
+        """
+        try:
+            factory = factory_registry.get_factory(provider, model)
+            return factory.validate_parameters_fast(params)
+        except FactoryNotFoundError:
+            # Fall back to basic validation
+            basic_result = self.validate_base_parameters(params)
+            factory_result = FactoryValidationResult(is_valid=basic_result.is_valid)
+
+            for error in basic_result.errors:
+                factory_result.add_error("parameter", error)
+
+            return factory_result
+
+    def preview_expansion_with_factory(
+        self, params: Dict[str, Any], provider: str = None, model: str = None
+    ) -> ExpansionPreview:
+        """
+        Preview expansion with optional factory validation.
+
+        Args:
+            params: Base parameters to analyze
+            provider: Optional provider name for factory validation
+            model: Optional model name for factory validation
+
+        Returns:
+            ExpansionPreview with expansion statistics
+        """
+        try:
+            # If factory info provided, validate first
+            if provider and model:
+                try:
+                    factory = factory_registry.get_factory(provider, model)
+                    validation_result = factory.validate_parameters_fast(params)
+
+                    if not validation_result.is_valid:
+                        # Still preview, but note validation issues
+                        pass
+
+                except FactoryNotFoundError:
+                    # Continue without factory validation
+                    pass
+
+            # Use existing expansion logic
+            return self.preview_expansion(params)
+
+        except Exception as e:
+            raise ExpansionError(f"Failed to preview expansion: {str(e)}")
 
     def update_order_status(self, order_id: str, session: Optional[Session] = None) -> None:
         """
