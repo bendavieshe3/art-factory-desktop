@@ -95,9 +95,7 @@ class OrderService:
         else:
             return self._create_order_items_with_session(order, session)
 
-    def _create_order_items_with_session(
-        self, order: Order, session: Session
-    ) -> List[OrderItem]:
+    def _create_order_items_with_session(self, order: Order, session: Session) -> List[OrderItem]:
         """Internal implementation with guaranteed session."""
         try:
             # Validate base parameters
@@ -165,18 +163,14 @@ class OrderService:
         if "prompt" in params and not isinstance(params["prompt"], str):
             errors.append("'prompt' must be a string")
 
-        if "negative_prompt" in params and not isinstance(
-            params["negative_prompt"], str
-        ):
+        if "negative_prompt" in params and not isinstance(params["negative_prompt"], str):
             errors.append("'negative_prompt' must be a string")
 
         if "steps" in params:
             if isinstance(params["steps"], str):
                 # Check if it's a valid range/expansion syntax
                 if not self._is_valid_range_syntax(params["steps"]):
-                    errors.append(
-                        f"'steps' has invalid range syntax: {params['steps']}"
-                    )
+                    errors.append(f"'steps' has invalid range syntax: {params['steps']}")
             elif not isinstance(params["steps"], (int, float)):
                 errors.append("'steps' must be a number or valid range string")
             elif isinstance(params["steps"], (int, float)) and params["steps"] <= 0:
@@ -186,8 +180,7 @@ class OrderService:
             if isinstance(params["guidance_scale"], str):
                 if not self._is_valid_range_syntax(params["guidance_scale"]):
                     errors.append(
-                        f"'guidance_scale' has invalid range syntax: "
-                        f"{params['guidance_scale']}"
+                        f"'guidance_scale' has invalid range syntax: " f"{params['guidance_scale']}"
                     )
             elif not isinstance(params["guidance_scale"], (int, float)):
                 errors.append("'guidance_scale' must be a number or valid range string")
@@ -202,13 +195,9 @@ class OrderService:
                     if not self._is_valid_range_syntax(value):
                         errors.append(f"'{key}' has invalid range expansion syntax")
 
-        return ValidationResult(
-            is_valid=len(errors) == 0, errors=errors, warnings=warnings
-        )
+        return ValidationResult(is_valid=len(errors) == 0, errors=errors, warnings=warnings)
 
-    def update_order_status(
-        self, order_id: str, session: Optional[Session] = None
-    ) -> None:
+    def update_order_status(self, order_id: str, session: Optional[Session] = None) -> None:
         """
         Update order status based on OrderItem statuses.
 
@@ -222,9 +211,7 @@ class OrderService:
         else:
             self._update_order_status_with_session(order_id, session)
 
-    def _update_order_status_with_session(
-        self, order_id: str, session: Session
-    ) -> None:
+    def _update_order_status_with_session(self, order_id: str, session: Session) -> None:
         """Internal implementation with guaranteed session."""
         try:
             order = session.query(Order).filter(Order.id == order_id).first()
@@ -232,12 +219,8 @@ class OrderService:
                 raise OrderServiceError(f"Order {order_id} not found")
 
             # Count statuses
-            completed_count = sum(
-                1 for item in order.order_items if item.status == "complete"
-            )
-            failed_count = sum(
-                1 for item in order.order_items if item.status == "failed"
-            )
+            completed_count = sum(1 for item in order.order_items if item.status == "complete")
+            failed_count = sum(1 for item in order.order_items if item.status == "failed")
 
             # Update counts
             order.completed_count = completed_count

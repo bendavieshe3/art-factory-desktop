@@ -48,10 +48,8 @@ class ProjectController(BaseController):
     def project_service(self):
         """Lazy loading of ProjectService to avoid circular imports."""
         if self._project_service is None:
-            # TODO: Import ProjectService when it's implemented
-            # from services.project_service import ProjectService
-            # self._project_service = ProjectService()
-            pass
+            from services.project_service import ProjectService
+            self._project_service = ProjectService()
         return self._project_service
 
     def load_projects(self, force_refresh: bool = False):

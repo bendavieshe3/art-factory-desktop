@@ -32,9 +32,7 @@ class TestOrderServiceBasic:
     @pytest.fixture
     def sample_project(self, db_session):
         """Create a sample project."""
-        project = Project(
-            name="Test Project", description="Test project for order service tests"
-        )
+        project = Project(name="Test Project", description="Test project for order service tests")
         db_session.add(project)
         db_session.commit()
         return project
@@ -108,9 +106,7 @@ class TestOrderServiceBasic:
         assert not result.is_valid
         assert "'prompt' must be a string" in result.errors
         assert "'steps' has invalid range syntax: not_a_number" in result.errors
-        assert (
-            "'guidance_scale' must be a number or valid range string" in result.errors
-        )
+        assert "'guidance_scale' must be a number or valid range string" in result.errors
 
     def test_parameter_validation_negative_values(self, order_service):
         """Test validation failure for negative values."""
