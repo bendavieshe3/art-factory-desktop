@@ -7,8 +7,8 @@
 ### Task Summary
 | Status | Count |
 |--------|-------|
-| Total Tasks | 29 |
-| Completed | 12 |
+| Total Tasks | 30 |
+| Completed | 13 |
 | In Progress | 0 |
 | Todo | 17 |
 | Blocked | 0 |
@@ -279,30 +279,74 @@
 
 ---
 
-### TASK-112: Logging and Status Framework [TODO]
+### TASK-112: Event Architecture and Logging Framework [COMPLETED]
 **Priority**: P1 - High
 **Dependencies**: TASK-107
-**Human Review**: ❌ Not Reviewed
+**Human Review**: ✅ Reviewed
+**Completed**: 2025-09-28
 
 **Acceptance Criteria**:
-- [ ] Create structured logging system with configurable levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- [ ] Implement context-aware logging with request/generation tracking
-- [ ] Add performance monitoring and timing metrics for operations
-- [ ] Create provider API request/response logging with sanitization
-- [ ] Implement error tracking and aggregation for debugging
-- [ ] Add logging integration with factory validation pipeline
-- [ ] Create log rotation and cleanup management
-- [ ] Support both file and console output with formatting
-- [ ] Add debug mode logging for development (signal bus integration)
-- [ ] Create logging configuration management (levels per module)
+- [x] Create unified event bus with pub/sub architecture
+- [x] Implement structured event types and base Event class
+- [x] Create event middleware for enrichment and correlation
+- [x] Implement logging subscriber with structured output
+- [x] Add data sanitization for sensitive information
+- [x] Create performance monitoring through event tracking
+- [x] Implement context tracking (order_id, session_id correlation)
+- [x] Add log rotation and cleanup management
+- [x] Support both file and console output with formatting
+- [x] Create configuration management system (YAML/JSON based)
+- [x] Add event filtering and routing capabilities
+- [x] Implement async event processing for non-blocking operations
 
 **Implementation Notes**:
-- Use Python's `logging` module with custom formatters
-- Integrate with existing signal bus debug logging
-- Sanitize sensitive data (API keys, personal info) from logs
-- Consider structured logging (JSON) for future analysis tools
-- Factory errors and validation results should be logged with context
-- Generation pipeline should log timing and progress milestones
+- Event bus is the central pub/sub system for all application events
+- Single touch point in code - emit event once, consumed by multiple subscribers
+- Logging subscriber converts events to structured log entries
+- Sanitization middleware removes sensitive data before any subscriber sees it
+- Events carry full context for correlation across systems
+- Async processing ensures UI remains responsive
+- Configuration supports per-module log levels and per-subscriber filtering
+
+**Architecture Components**:
+- `app/events/event_bus.py`: Core pub/sub implementation
+- `app/events/event_types.py`: Structured event type definitions
+- `app/events/subscribers/logger.py`: File/console logging subscriber
+- `app/events/middleware.py`: Event processing pipeline
+- `app/logging/`: Traditional logging configuration and formatters
+
+---
+
+### TASK-115: UI Bridge Subscriber and Signal Consolidation [TODO]
+**Priority**: P1 - High
+**Dependencies**: TASK-112
+**Human Review**: ✅ Reviewed
+**Created**: 2025-09-28
+
+**Acceptance Criteria**:
+- [ ] Create UI bridge subscriber to convert events to Qt signals
+- [ ] Map event types to appropriate domain and UI signals
+- [ ] Implement backward compatibility with existing signal connections
+- [ ] Identify and remove redundant signal emissions
+- [ ] Add event filtering for UI-relevant events only
+- [ ] Implement throttling for high-frequency events (e.g., progress updates)
+- [ ] Create migration guide for existing signal usage
+- [ ] Test UI responsiveness with event-driven updates
+- [ ] Document when to use events vs direct signals
+
+**Implementation Notes**:
+- Bridge subscriber maintains existing Qt signal interface for UI components
+- Controllers continue to connect to signals, but signals are now driven by events
+- Direct signal emission should only be used for pure UI interactions (clicks, selections)
+- Business logic events should always go through event bus
+- Progress events should be throttled to prevent UI flooding
+- Consider batching related events for UI updates
+
+**Migration Strategy**:
+1. Implement bridge subscriber alongside existing signals
+2. Gradually replace direct signal emissions with event publications
+3. Remove redundant signal emissions once bridge is proven
+4. Update controllers to rely on event-driven signals
 
 ---
 

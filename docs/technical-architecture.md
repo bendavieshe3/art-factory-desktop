@@ -23,12 +23,26 @@ Art Factory is a desktop application for managing AI-generated media (images, vi
 
 ## Architecture Principles
 
-### 1. Signal-Driven Architecture
-All communication between layers uses PyQt signals/slots for:
-- Decoupling UI from business logic
+### 1. Event-Driven Architecture with Signal Bridge
+Two complementary systems work together:
+
+#### Event Bus (Business Logic)
+- Central pub/sub for all business events
+- Single touch point - emit once, consume many
+- Carries full context (order_id, session_id, etc.)
+- Enables logging, metrics, history tracking
+- Async processing for non-blocking operations
+
+#### Qt Signals (UI Layer)
+- UI components continue using familiar Qt signals
+- Signals are driven by event bus through UI bridge
+- Direct signals only for pure UI interactions (clicks, drags)
 - Thread-safe updates across boundaries
-- Clean event propagation
-- Progress tracking and cancellation
+
+#### When to Use Each:
+- **Use Event Bus**: Business operations, generation pipeline, API calls, performance tracking
+- **Use Direct Signals**: UI interactions, widget-to-widget communication
+- **Use Both**: Business events that need UI updates (event → bridge → signal)
 
 ### 2. MVC Pattern with Controllers
 - **Models**: SQLAlchemy entities + domain objects
@@ -88,7 +102,16 @@ art-factory/
 │   │       ├── preferences_dialog.py
 │   │       └── order_dialog.py
 │   │
-│   ├── signals/            # Event system
+│   ├── events/             # Event bus architecture
+│   │   ├── __init__.py
+│   │   ├── event_bus.py   # Core pub/sub system
+│   │   ├── event_types.py # Event type definitions
+│   │   ├── middleware.py  # Event processing pipeline
+│   │   └── subscribers/   # Event consumers
+│   │       ├── logger.py  # Logging subscriber
+│   │       └── ui_bridge.py # Qt signal bridge
+│   │
+│   ├── signals/            # Qt signal system
 │   │   ├── __init__.py
 │   │   ├── domain_signals.py
 │   │   └── ui_signals.py
@@ -126,7 +149,52 @@ art-factory/
 
 ## Core Components
 
-### 1. Signal Architecture
+### 1. Event Bus Architecture
+
+The event bus is the central nervous system for application communication:
+
+#### Event Flow
+```python
+# Single emission point in business logic
+event_bus.publish(Event(
+    type=EventTypes.GENERATION_STARTED,
+    order_item_id="abc123",
+    data={"provider": "replicate", "model": "sdxl"}
+))
+
+# Automatically consumed by:
+# - Logging subscriber → structured logs
+# - UI bridge subscriber → Qt signals → UI updates
+# - Metrics subscriber → performance tracking
+# - History subscriber → production history
+```
+
+#### Event Structure
+```python
+@dataclass
+class Event:
+    id: str                          # Unique event ID
+    timestamp: datetime              # Event time
+    type: str                       # Event type constant
+    source: str                     # Component that emitted
+    context: Dict[str, Any]         # Contextual data
+    data: Dict[str, Any]           # Event payload
+    order_id: Optional[str]         # Order correlation
+    order_item_id: Optional[str]   # Item correlation
+    session_id: Optional[str]       # Session correlation
+```
+
+#### Subscriber Pattern
+Each subscriber processes events independently:
+- **Logging Subscriber**: Structured log output with rotation
+- **UI Bridge Subscriber**: Event to Qt signal mapping
+- **Metrics Subscriber**: Performance aggregation
+- **History Subscriber**: Production history tracking
+- **Future**: Analytics, remote monitoring, etc.
+
+### 2. Signal Architecture (Qt Layer)
+
+Qt signals remain for UI components but are now primarily driven by the event bus through the UI bridge subscriber. Direct signal emission should be limited to pure UI interactions.
 
 #### Domain Signals
 ```python

@@ -10,6 +10,8 @@ from PyQt6.QtCore import QTimer
 from signals import signal_bus
 from controllers.controller_manager import ControllerManager
 from views.main_window import MainWindow
+from logging.config import setup_logging
+from events import event_bus, Event, EventTypes
 
 
 class ArtFactoryApplication:
@@ -51,6 +53,9 @@ class ArtFactoryApplication:
             self.qt_app.setOrganizationName("Art Factory")
             self.qt_app.setOrganizationDomain("artfactory.local")
 
+            # Initialize event system
+            self._setup_event_system()
+
             # Initialize controller manager
             self.controller_manager = ControllerManager(signal_bus)
             if not self.controller_manager.initialize_controllers():
@@ -73,6 +78,23 @@ class ArtFactoryApplication:
         except Exception as e:
             self.logger.error(f"Failed to initialize application: {e}")
             return False
+
+    def _setup_event_system(self):
+        """Set up the event system with logging and configuration."""
+        try:
+            self.logger.info("Setting up event system")
+
+            # Set up logging configuration with event bus integration
+            # Check for debug mode from command line
+            debug_mode = "--debug" in sys.argv
+            config = setup_logging()
+
+            self.logger.info("Event system initialized successfully")
+
+        except Exception as e:
+            self.logger.error(f"Failed to set up event system: {e}")
+            # Don't fail application startup if event system fails
+            # Fall back to basic logging
 
     def _connect_controllers_to_ui(self):
         """Connect controllers to UI components."""
@@ -266,6 +288,13 @@ class ArtFactoryApplication:
         try:
             self.logger.info("Shutting down Art Factory application")
 
+            # Emit shutdown event
+            event_bus.publish(Event(
+                type=EventTypes.SYSTEM_SHUTDOWN,
+                source="application",
+                data={"clean_shutdown": True}
+            ))
+
             # Shutdown controller manager
             if self.controller_manager:
                 self.controller_manager.shutdown_controllers()
@@ -273,6 +302,9 @@ class ArtFactoryApplication:
             # Close main window
             if self.main_window:
                 self.main_window.close()
+
+            # Shutdown event bus
+            event_bus.shutdown()
 
             self.logger.info("Application shutdown complete")
 

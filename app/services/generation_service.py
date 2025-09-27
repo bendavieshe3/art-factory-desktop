@@ -14,6 +14,7 @@ from sqlalchemy import and_, func, desc
 
 from ..models import Order, OrderItem, GenerationQueue, Product
 from ..models.database import session_scope
+from ..events import event_bus, Event, EventTypes, EventSeverity
 
 
 class GenerationServiceError(Exception):
@@ -74,9 +75,27 @@ class GenerationService:
                     item.worker_id = None
                     item.started_at = None
 
+                    # Emit restoration event
+                    event_bus.publish(Event(
+                        type=EventTypes.GENERATION_RESTORED,
+                        source="generation_service",
+                        severity=EventSeverity.WARNING,
+                        order_item_id=item.order_item_id,
+                        order_id=item.order_id,
+                        data={"queue_item_id": item.id}
+                    ))
+
                 if interrupted_items:
                     session.commit()
                     self.logger.info(f"Restored {len(interrupted_items)} interrupted generations")
+
+                    # Emit system restoration event
+                    event_bus.publish(Event(
+                        type=EventTypes.SYSTEM_RECOVERY,
+                        source="generation_service",
+                        severity=EventSeverity.INFO,
+                        data={"restored_count": len(interrupted_items)}
+                    ))
 
         except SQLAlchemyError as e:
             self.logger.error(f"Failed to restore interrupted generations: {e}")
@@ -117,6 +136,18 @@ class GenerationService:
                 session.commit()
 
                 self.logger.info(f"Queued order {order_id} with {len(queue_items)} items")
+
+                # Emit order queued event
+                event_bus.publish(Event(
+                    type=EventTypes.ORDER_QUEUED,
+                    source="generation_service",
+                    order_id=order_id,
+                    data={
+                        "queue_item_count": len(queue_items),
+                        "queue_item_ids": queue_items
+                    }
+                ))
+
                 return queue_items
 
         except SQLAlchemyError as e:
@@ -300,6 +331,17 @@ class GenerationService:
                 session.commit()
 
                 self.logger.info(f"Started generation for queue item: {queue_item_id}")
+
+                # Emit generation started event
+                event_bus.publish_generation_started(
+                    order_item_id=queue_item.order_item_id,
+                    order_id=queue_item.order_id,
+                    provider=queue_item.provider,
+                    model=queue_item.model,
+                    worker_id=worker_id,
+                    queue_item_id=queue_item_id
+                )
+
                 return queue_item
 
         except SQLAlchemyError as e:
@@ -342,6 +384,16 @@ class GenerationService:
                     queue_item.metadata = current_metadata
 
                 session.commit()
+
+                # Emit progress event
+                event_bus.publish_generation_progress(
+                    order_item_id=queue_item.order_item_id,
+                    progress=progress_percent,
+                    order_id=queue_item.order_id,
+                    provider=queue_item.provider,
+                    metadata=metadata
+                )
+
                 return queue_item
 
         except SQLAlchemyError as e:
@@ -386,6 +438,16 @@ class GenerationService:
                 session.commit()
 
                 self.logger.info(f"Completed generation for queue item: {queue_item_id}")
+
+                # Emit generation completed event
+                event_bus.publish_generation_completed(
+                    order_item_id=queue_item.order_item_id,
+                    order_id=queue_item.order_id,
+                    provider=queue_item.provider,
+                    duration_seconds=queue_item.get_duration(),
+                    metadata=product_data
+                )
+
                 return queue_item
 
         except SQLAlchemyError as e:
@@ -430,6 +492,16 @@ class GenerationService:
                 self.logger.error(
                     f"Failed generation for queue item {queue_item_id}: {error_message}"
                 )
+
+                # Emit generation failed event
+                event_bus.publish_generation_failed(
+                    order_item_id=queue_item.order_item_id,
+                    error_message=error_message,
+                    order_id=queue_item.order_id,
+                    provider=queue_item.provider,
+                    retry_count=queue_item.retry_count
+                )
+
                 return queue_item
 
         except SQLAlchemyError as e:

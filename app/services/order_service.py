@@ -17,6 +17,7 @@ from ..models import Order, OrderItem
 from ..models.database import session_scope
 from ..factories import factory_registry, FactoryNotFoundError, ValidationError
 from ..factories.base import ValidationResult as FactoryValidationResult
+from ..events import event_bus, Event, EventTypes, EventSeverity
 
 
 class ValidationResult(NamedTuple):
@@ -103,6 +104,17 @@ class OrderService:
             # Validate base parameters
             validation = self.validate_base_parameters(order.base_parameter_set or {})
             if not validation.is_valid:
+                # Emit validation failed event
+                event_bus.publish(Event(
+                    type=EventTypes.VALIDATION_FAILED,
+                    source="order_service",
+                    severity=EventSeverity.ERROR,
+                    order_id=order.id,
+                    data={
+                        "validation_errors": validation.errors,
+                        "validation_warnings": validation.warnings
+                    }
+                ))
                 raise ParameterValidationError(
                     f"Invalid parameters: {', '.join(validation.errors)}"
                 )
@@ -110,8 +122,31 @@ class OrderService:
             # Check if expansion is needed
             expanded_params = self.expand_parameters(order.base_parameter_set or {})
 
+            # Emit parameter expansion event
+            event_bus.publish(Event(
+                type=EventTypes.PARAMETER_EXPANSION,
+                source="order_service",
+                order_id=order.id,
+                data={
+                    "base_parameters": order.base_parameter_set,
+                    "expanded_count": len(expanded_params),
+                    "expansion_types": self._analyze_expansion_types(order.base_parameter_set or {})
+                }
+            ))
+
             # Validate expansion limits
             if len(expanded_params) > self.max_items:
+                # Emit expansion limit exceeded event
+                event_bus.publish(Event(
+                    type=EventTypes.EXPANSION_LIMIT_EXCEEDED,
+                    source="order_service",
+                    severity=EventSeverity.ERROR,
+                    order_id=order.id,
+                    data={
+                        "expanded_count": len(expanded_params),
+                        "max_limit": self.max_items
+                    }
+                ))
                 raise ExpansionError(
                     f"Parameter expansion would create {len(expanded_params)} "
                     f"OrderItems, which exceeds the limit of {self.max_items}"
@@ -134,6 +169,21 @@ class OrderService:
             order.status = "processing" if order_items else "pending"
 
             session.commit()
+
+            # Emit order items created event
+            event_bus.publish(Event(
+                type=EventTypes.ORDER_ITEMS_CREATED,
+                source="order_service",
+                order_id=order.id,
+                data={
+                    "order_item_count": len(order_items),
+                    "expansion_result": {
+                        "total_items": len(expanded_params),
+                        "expanded_from_base": len(expanded_params) > 1
+                    }
+                }
+            ))
+
             return order_items
 
         except SQLAlchemyError as e:
@@ -607,3 +657,15 @@ class OrderService:
         """Check if range expansion syntax is valid."""
         pattern = r"^\d+(?:\.\d+)?\.\.(\d+(?:\.\d+)?)$"
         return bool(re.match(pattern, value.strip()))
+
+    def _analyze_expansion_types(self, params: Dict[str, Any]) -> Dict[str, bool]:
+        """Analyze what types of expansion are present in parameters."""
+        has_tokens = any("[" in str(v) and "]" in str(v) for v in params.values())
+        has_ranges = any(".." in str(v) for v in params.values())
+        has_subprompts = "||" in params.get("prompt", "") or "||" in params.get("negative_prompt", "")
+
+        return {
+            "has_tokens": has_tokens,
+            "has_ranges": has_ranges,
+            "has_subprompts": has_subprompts
+        }

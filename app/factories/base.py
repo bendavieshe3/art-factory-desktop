@@ -8,6 +8,8 @@ from enum import Enum
 from typing import Dict, List, Any, Optional, Union
 import logging
 
+from ..events import event_bus, Event, EventTypes, EventSeverity
+
 
 logger = logging.getLogger(__name__)
 
@@ -220,9 +222,38 @@ class BaseProductFactory(ABC):
             if result.is_valid:
                 self._validate_basic_formats(params, result)
 
+            # Emit validation event
+            event_bus.publish(Event(
+                type=EventTypes.FACTORY_VALIDATION_STARTED,
+                source=f"factory.{self.provider_name}.{self.model_name}",
+                severity=EventSeverity.DEBUG,
+                data={
+                    "validation_type": "fast",
+                    "provider": self.provider_name,
+                    "model": self.model_name,
+                    "is_valid": result.is_valid,
+                    "error_count": len(result.errors),
+                    "warning_count": len(result.warnings)
+                }
+            ))
+
         except Exception as e:
             self.logger.error(f"Fast validation failed: {e}")
             result.add_error("system", f"Validation system error: {str(e)}")
+
+            # Emit validation error event
+            event_bus.publish(Event(
+                type=EventTypes.FACTORY_VALIDATION_FAILED,
+                source=f"factory.{self.provider_name}.{self.model_name}",
+                severity=EventSeverity.ERROR,
+                error_message=str(e),
+                error_type="ValidationSystemError",
+                data={
+                    "validation_type": "fast",
+                    "provider": self.provider_name,
+                    "model": self.model_name
+                }
+            ))
 
         return result
 
