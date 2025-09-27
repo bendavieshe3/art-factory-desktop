@@ -37,6 +37,7 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("Art Factory", "Desktop")
         self._current_theme = "light"
         self._current_screen = "projects"  # projects, generate, gallery
+        self._current_view = "projects"  # Track current view for settings persistence
         self._generation_active = False
         self._selected_product = None
 
@@ -502,6 +503,7 @@ class MainWindow(QMainWindow):
 
     def _switch_view(self, view_name):
         """Legacy method - redirect to screen switching."""
+        self._current_view = view_name  # Update current view for settings persistence
         if view_name == "gallery":
             self._switch_screen("gallery")
         else:
