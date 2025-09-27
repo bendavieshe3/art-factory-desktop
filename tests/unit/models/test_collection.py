@@ -78,15 +78,9 @@ class TestCollection:
         session.commit()
 
         # Create collection products
-        cp1 = CollectionProduct(
-            collection_id=collection.id, product_id="prod-1", position=0
-        )
-        cp2 = CollectionProduct(
-            collection_id=collection.id, product_id="prod-2", position=1
-        )
-        cp3 = CollectionProduct(
-            collection_id=collection.id, product_id="prod-3", position=2
-        )
+        cp1 = CollectionProduct(collection_id=collection.id, product_id="prod-1", position=0)
+        cp2 = CollectionProduct(collection_id=collection.id, product_id="prod-2", position=1)
+        cp3 = CollectionProduct(collection_id=collection.id, product_id="prod-3", position=2)
 
         collection.products = [cp1, cp2, cp3]
         session.commit()
@@ -151,9 +145,7 @@ class TestCollectionProduct:
         session.add(product)
         session.commit()
 
-        cp = CollectionProduct(
-            collection_id=collection.id, product_id=product.id, position=3
-        )
+        cp = CollectionProduct(collection_id=collection.id, product_id=product.id, position=3)
         session.add(cp)
         session.commit()
 
@@ -173,9 +165,7 @@ class TestCollectionProduct:
 
     def test_move_to_position_method(self, session):
         """Test moving product to new position."""
-        cp = CollectionProduct(
-            collection_id="collection-1", product_id="product-1", position=5
-        )
+        cp = CollectionProduct(collection_id="collection-1", product_id="product-1", position=5)
         session.add(cp)
         session.commit()
 
@@ -184,9 +174,7 @@ class TestCollectionProduct:
 
     def test_collection_product_repr(self, session):
         """Test collection product string representation."""
-        cp = CollectionProduct(
-            collection_id="collection-1", product_id="product-1", position=3
-        )
+        cp = CollectionProduct(collection_id="collection-1", product_id="product-1", position=3)
         session.add(cp)
         session.commit()
 

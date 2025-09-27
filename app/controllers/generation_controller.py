@@ -32,6 +32,7 @@ class GenerationController(BaseController):
 
         # Services (will be imported when needed to avoid circular imports)
         self._order_service = None
+        self._generation_service = None
 
     def _connect_signals(self):
         """Connect generation controller signals."""
@@ -44,9 +45,7 @@ class GenerationController(BaseController):
         self.signal_bus.domain.order_created.connect(self._on_order_created)
         self.signal_bus.domain.generation_started.connect(self._on_generation_started)
         self.signal_bus.domain.generation_progress.connect(self._on_generation_progress)
-        self.signal_bus.domain.generation_completed.connect(
-            self._on_generation_completed
-        )
+        self.signal_bus.domain.generation_completed.connect(self._on_generation_completed)
         self.signal_bus.domain.generation_failed.connect(self._on_generation_failed)
 
     @property
@@ -57,6 +56,15 @@ class GenerationController(BaseController):
 
             self._order_service = OrderService()
         return self._order_service
+
+    @property
+    def generation_service(self):
+        """Lazy loading of GenerationService to avoid circular imports."""
+        if self._generation_service is None:
+            from ..services.generation_service import GenerationService
+
+            self._generation_service = GenerationService()
+        return self._generation_service
 
     @pyqtSlot(dict)
     def _on_generation_requested(self, parameters: Dict[str, Any]):
@@ -106,9 +114,7 @@ class GenerationController(BaseController):
                 # Emit order created signal
                 self.signal_bus.domain.order_created.emit(order.id)
 
-                self.logger.info(
-                    f"Order created: {order.id} with {len(order.items)} items"
-                )
+                self.logger.info(f"Order created: {order.id} with {len(order.items)} items")
 
             except Exception as e:
                 self.handle_error(f"Failed to create order: {str(e)}", "Generation")
@@ -117,8 +123,7 @@ class GenerationController(BaseController):
 
             self.finish_loading()
 
-            # TODO: Start actual generation processing
-            # This will be implemented when we have provider factories
+            # Queue the order for generation processing
             self._queue_generation(order.id)
 
         except Exception as e:
@@ -153,15 +158,24 @@ class GenerationController(BaseController):
             self.logger.error(f"Cannot queue unknown order: {order_id}")
             return
 
-        self.generation_queue.append(order_id)
-        self.logger.info(f"Queued order for generation: {order_id}")
+        try:
+            # Queue the order using GenerationService
+            queue_item_ids = self.generation_service.queue_order(order_id, priority=0)
 
-        # For now, just emit started signal to update UI
-        # In the future, this will coordinate with worker threads
-        self.signal_bus.domain.generation_started.emit(order_id)
+            self.logger.info(f"Queued order {order_id} with {len(queue_item_ids)} items")
 
-        # Simulate progress for now
-        self._simulate_generation_progress(order_id)
+            # Emit started signal to update UI
+            self.signal_bus.domain.generation_started.emit(order_id)
+
+            # For now, simulate progress until we have real workers
+            # In the future, workers will handle this
+            self._simulate_generation_progress(order_id)
+
+        except Exception as e:
+            self.handle_error(f"Failed to queue order: {str(e)}", "Generation")
+            # Update order status
+            if order_id in self.active_orders:
+                self.active_orders[order_id]["status"] = "failed"
 
     def _simulate_generation_progress(self, order_id: str):
         """Simulate generation progress (temporary until real implementation).
@@ -201,18 +215,24 @@ class GenerationController(BaseController):
         """Handle generation cancellation request.
 
         Args:
-            item_id: ID of the item to cancel
+            item_id: ID of the item to cancel (could be order_item_id or queue_item_id)
         """
         self.logger.info(f"Cancellation requested for item: {item_id}")
 
-        # Find the order containing this item
-        order_id = self._find_order_by_item(item_id)
-        if order_id and order_id in self.active_orders:
-            order_data = self.active_orders[order_id]
-            order_data["status"] = "cancelled"
+        try:
+            # Try to cancel using GenerationService
+            # The item_id could be a queue_item_id or order_item_id
+            cancelled = self.generation_service.cancel_generation(item_id)
 
-            # TODO: Implement actual cancellation logic
-            self.logger.info(f"Cancelled generation for order: {order_id}")
+            if cancelled:
+                self.logger.info(f"Cancelled generation for item: {item_id}")
+                # Emit cancellation signal
+                self.signal_bus.domain.generation_cancelled.emit(item_id)
+            else:
+                self.logger.warning(f"Could not cancel item {item_id} - may not be in queue")
+
+        except Exception as e:
+            self.handle_error(f"Failed to cancel generation: {str(e)}", "Generation")
 
     @pyqtSlot(str)
     def _on_regenerate_requested(self, product_id: str):

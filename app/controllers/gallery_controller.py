@@ -63,12 +63,11 @@ class GalleryController(BaseController):
         """Lazy loading of ProductService to avoid circular imports."""
         if self._product_service is None:
             from ..services.product_service import ProductService
+
             self._product_service = ProductService()
         return self._product_service
 
-    def load_products(
-        self, project_id: Optional[str] = None, force_refresh: bool = False
-    ):
+    def load_products(self, project_id: Optional[str] = None, force_refresh: bool = False):
         """Load products for display in the gallery.
 
         Args:
@@ -134,9 +133,7 @@ class GalleryController(BaseController):
 
         return mock_products
 
-    def _apply_filters_and_search(
-        self, products: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def _apply_filters_and_search(self, products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Apply current filters and search query to products.
 
         Args:
@@ -153,8 +150,7 @@ class GalleryController(BaseController):
                 p
                 for p in filtered
                 if self.search_query.lower() in p.get("name", "").lower()
-                or self.search_query.lower()
-                in p.get("parameters", {}).get("prompt", "").lower()
+                or self.search_query.lower() in p.get("parameters", {}).get("prompt", "").lower()
             ]
 
         # Apply filters
@@ -172,9 +168,7 @@ class GalleryController(BaseController):
             # Apply model filter
             if "model" in self.current_filter:
                 model = self.current_filter["model"]
-                filtered = [
-                    p for p in filtered if p.get("metadata", {}).get("model") == model
-                ]
+                filtered = [p for p in filtered if p.get("metadata", {}).get("model") == model]
 
         return filtered
 
@@ -196,9 +190,7 @@ class GalleryController(BaseController):
             selected_product_ids: List of selected product IDs
         """
         self.selected_products = selected_product_ids
-        self.logger.debug(
-            f"Product selection changed: {len(selected_product_ids)} selected"
-        )
+        self.logger.debug(f"Product selection changed: {len(selected_product_ids)} selected")
 
         # Update metadata panel with first selected product
         if selected_product_ids:
@@ -273,9 +265,7 @@ class GalleryController(BaseController):
                 self.load_products(project_id, force_refresh=True)
 
             self.finish_loading()
-            self.logger.info(
-                f"Successfully imported {imported_count} of {len(file_paths)} files"
-            )
+            self.logger.info(f"Successfully imported {imported_count} of {len(file_paths)} files")
 
         except Exception as e:
             self.handle_error(f"File import failed: {str(e)}", "Gallery")
@@ -403,9 +393,7 @@ class GalleryController(BaseController):
         """
         # TODO: Update metadata panel when available
         # This will involve updating the metadata panel widget
-        self.logger.debug(
-            f"Would update metadata panel for product: {product_data.get('id')}"
-        )
+        self.logger.debug(f"Would update metadata panel for product: {product_data.get('id')}")
 
     def _clear_metadata_panel(self):
         """Clear the metadata panel."""
@@ -416,10 +404,7 @@ class GalleryController(BaseController):
         """Periodic refresh of gallery data."""
         # Only refresh if we have a current project
         main_controller = self.parent()
-        if (
-            hasattr(main_controller, "current_project_id")
-            and main_controller.current_project_id
-        ):
+        if hasattr(main_controller, "current_project_id") and main_controller.current_project_id:
             self.logger.debug("Performing periodic gallery refresh")
             self.load_products(main_controller.current_project_id)
 

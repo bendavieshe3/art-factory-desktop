@@ -10,9 +10,7 @@ class TestProject:
 
     def test_project_creation(self, session):
         """Test creating a project."""
-        project = Project(
-            name="My Project", description="A test project", status="active"
-        )
+        project = Project(name="My Project", description="A test project", status="active")
         session.add(project)
         session.commit()
 

@@ -49,6 +49,7 @@ class ProjectController(BaseController):
         """Lazy loading of ProjectService to avoid circular imports."""
         if self._project_service is None:
             from ..services.project_service import ProjectService
+
             self._project_service = ProjectService()
         return self._project_service
 

@@ -54,9 +54,7 @@ class ControllerManager:
             self.project_controller = ProjectController(self.signal_bus)
 
             # Register controllers with main controller
-            self.main_controller.register_controller(
-                "generation", self.generation_controller
-            )
+            self.main_controller.register_controller("generation", self.generation_controller)
             self.main_controller.register_controller("gallery", self.gallery_controller)
             self.main_controller.register_controller("project", self.project_controller)
 
@@ -88,14 +86,10 @@ class ControllerManager:
     def _connect_cross_controller_signals(self):
         """Connect signals that span multiple controllers."""
         # Example: When a project changes, notify gallery to reload
-        self.signal_bus.domain.project_changed.connect(
-            self.gallery_controller._on_project_changed
-        )
+        self.signal_bus.domain.project_changed.connect(self.gallery_controller._on_project_changed)
 
         # When products are created, update project statistics
-        self.signal_bus.domain.product_created.connect(
-            self._on_product_created_for_stats
-        )
+        self.signal_bus.domain.product_created.connect(self._on_product_created_for_stats)
 
     def _on_product_created_for_stats(self, product_id: str):
         """Handle product creation for statistics updates.
@@ -183,9 +177,7 @@ class ControllerManager:
         status = {
             "initialized": True,
             "main_controller": {
-                "current_project": getattr(
-                    self.main_controller, "current_project_id", None
-                ),
+                "current_project": getattr(self.main_controller, "current_project_id", None),
                 "registered_controllers": len(self.main_controller.controllers),
             },
         }

@@ -33,12 +33,8 @@ class Project(BaseModel):
     settings_json = Column(Text)
 
     # Relationships
-    orders = relationship(
-        "Order", back_populates="project", cascade="all, delete-orphan"
-    )
-    products = relationship(
-        "Product", back_populates="project", cascade="all, delete-orphan"
-    )
+    orders = relationship("Order", back_populates="project", cascade="all, delete-orphan")
+    products = relationship("Product", back_populates="project", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Project(id={self.id}, name='{self.name}', status='{self.status}')>"

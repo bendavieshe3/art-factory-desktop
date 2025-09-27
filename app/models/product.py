@@ -22,9 +22,7 @@ class Product(BaseModel):
     __tablename__ = "products"
 
     # Core fields
-    order_item_id = Column(
-        String(36), ForeignKey("order_items.id", ondelete="SET NULL")
-    )
+    order_item_id = Column(String(36), ForeignKey("order_items.id", ondelete="SET NULL"))
     project_id = Column(String(36), ForeignKey("projects.id", ondelete="CASCADE"))
 
     # File information
@@ -60,9 +58,7 @@ class Product(BaseModel):
     )
 
     def __repr__(self):
-        return (
-            f"<Product(id={self.id}, type='{self.type}', file_path='{self.file_path}')>"
-        )
+        return f"<Product(id={self.id}, type='{self.type}', file_path='{self.file_path}')>"
 
     def calculate_file_hash(self):
         """Calculate SHA256 hash of the file."""

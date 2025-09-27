@@ -87,18 +87,14 @@ class TestProduct:
     def test_aspect_ratio_properties(self, session):
         """Test aspect ratio calculations."""
         # Landscape image
-        landscape = Product(
-            type="image", file_path="/landscape.jpg", width=1920, height=1080
-        )
+        landscape = Product(type="image", file_path="/landscape.jpg", width=1920, height=1080)
         assert landscape.aspect_ratio == pytest.approx(1.777, rel=1e-3)
         assert landscape.is_landscape
         assert not landscape.is_portrait
         assert not landscape.is_square
 
         # Portrait image
-        portrait = Product(
-            type="image", file_path="/portrait.jpg", width=1080, height=1920
-        )
+        portrait = Product(type="image", file_path="/portrait.jpg", width=1080, height=1920)
         assert portrait.aspect_ratio == pytest.approx(0.5625, rel=1e-3)
         assert not portrait.is_landscape
         assert portrait.is_portrait

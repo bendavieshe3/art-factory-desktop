@@ -28,9 +28,7 @@ class BaseModel(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
 
     @declared_attr
@@ -76,11 +74,7 @@ class BaseModel(Base):
         # Handle JSON fields
         processed_data = {}
         for key, value in data.items():
-            if (
-                key.endswith("_json")
-                and value is not None
-                and not isinstance(value, str)
-            ):
+            if key.endswith("_json") and value is not None and not isinstance(value, str):
                 processed_data[key] = json.dumps(value)
             else:
                 processed_data[key] = value

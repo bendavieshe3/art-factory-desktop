@@ -45,9 +45,7 @@ class Order(BaseModel):
 
     # Relationships
     project = relationship("Project", back_populates="orders")
-    order_items = relationship(
-        "OrderItem", back_populates="order", cascade="all, delete-orphan"
-    )
+    order_items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
 
     @property
     def base_parameter_set(self):
@@ -110,9 +108,7 @@ class OrderItem(BaseModel):
     __tablename__ = "order_items"
 
     # Core fields
-    order_id = Column(
-        String(36), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
-    )
+    order_id = Column(String(36), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
     sequence_number = Column(Integer, nullable=False)  # Order within the batch
 
     # Status tracking
@@ -138,8 +134,9 @@ class OrderItem(BaseModel):
 
     # Relationships
     order = relationship("Order", back_populates="order_items")
-    products = relationship(
-        "Product", back_populates="order_item", cascade="all, delete-orphan"
+    products = relationship("Product", back_populates="order_item", cascade="all, delete-orphan")
+    generation_queue = relationship(
+        "GenerationQueue", back_populates="order_item", cascade="all, delete-orphan", uselist=False
     )
 
     @property

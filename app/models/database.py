@@ -52,9 +52,7 @@ class DatabaseManager:
         self.engine = create_engine(
             self.database_url,
             echo=self.echo,
-            connect_args=(
-                {"check_same_thread": False} if "sqlite" in self.database_url else {}
-            ),
+            connect_args=({"check_same_thread": False} if "sqlite" in self.database_url else {}),
         )
 
         # Enable foreign keys for SQLite

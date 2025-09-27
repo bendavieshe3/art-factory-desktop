@@ -62,9 +62,7 @@ class TestMainController:
 
         # Track signal emissions
         project_changed_signals = []
-        signal_bus.domain.project_changed.connect(
-            lambda pid: project_changed_signals.append(pid)
-        )
+        signal_bus.domain.project_changed.connect(lambda pid: project_changed_signals.append(pid))
 
         # Set project
         controller.set_current_project("test-project-123")
@@ -114,7 +112,7 @@ class TestGenerationController:
         empty_prompt_params = {"prompt": ""}
         assert controller._validate_parameters(empty_prompt_params) is False
 
-    @patch('app.controllers.generation_controller.OrderService')
+    @patch("app.controllers.generation_controller.OrderService")
     def test_generation_request_handling(self, mock_order_service, qtbot):
         """Test handling generation requests."""
         signal_bus = SignalBus()
@@ -133,9 +131,7 @@ class TestGenerationController:
 
         # Track signal emissions
         order_created_signals = []
-        signal_bus.domain.order_created.connect(
-            lambda oid: order_created_signals.append(oid)
-        )
+        signal_bus.domain.order_created.connect(lambda oid: order_created_signals.append(oid))
 
         # Test generation request
         parameters = {"prompt": "A beautiful landscape"}
@@ -151,10 +147,7 @@ class TestGenerationController:
         controller = GenerationController(signal_bus)
 
         # Mock order data
-        controller.active_orders["order-1"] = {
-            "order": Mock(),
-            "status": "created"
-        }
+        controller.active_orders["order-1"] = {"order": Mock(), "status": "created"}
 
         # Test queueing
         controller._queue_generation("order-1")
@@ -213,9 +206,24 @@ class TestGalleryController:
 
         # Create test products
         products = [
-            {"id": "1", "name": "Cat Image", "project_id": "proj1", "parameters": {"prompt": "cat"}},
-            {"id": "2", "name": "Dog Image", "project_id": "proj2", "parameters": {"prompt": "dog"}},
-            {"id": "3", "name": "Bird Image", "project_id": "proj1", "parameters": {"prompt": "bird"}},
+            {
+                "id": "1",
+                "name": "Cat Image",
+                "project_id": "proj1",
+                "parameters": {"prompt": "cat"},
+            },
+            {
+                "id": "2",
+                "name": "Dog Image",
+                "project_id": "proj2",
+                "parameters": {"prompt": "dog"},
+            },
+            {
+                "id": "3",
+                "name": "Bird Image",
+                "project_id": "proj1",
+                "parameters": {"prompt": "bird"},
+            },
         ]
 
         # Test search
@@ -253,12 +261,12 @@ class TestGalleryController:
         controller = GalleryController(signal_bus)
 
         # Test valid image file
-        with patch('pathlib.Path.exists', return_value=True):
+        with patch("pathlib.Path.exists", return_value=True):
             result = controller._import_file("/test/image.png", "test-project")
             assert result is True
 
         # Test non-existent file
-        with patch('pathlib.Path.exists', return_value=False):
+        with patch("pathlib.Path.exists", return_value=False):
             result = controller._import_file("/test/missing.png", "test-project")
             assert result is False
 
@@ -312,9 +320,7 @@ class TestProjectController:
 
         # Track signal emissions
         project_created_signals = []
-        signal_bus.domain.project_created.connect(
-            lambda pid: project_created_signals.append(pid)
-        )
+        signal_bus.domain.project_created.connect(lambda pid: project_created_signals.append(pid))
 
         # Create project
         project_id = controller.create_project("Test Project", "Test description")
@@ -500,7 +506,9 @@ def test_controller_integration(qtbot):
     assert main_controller.current_project_id == project_id
 
     # Test that gallery controller receives project change
-    assert gallery_controller.current_filter.get("project_id") != project_id  # Filter not auto-applied
+    assert (
+        gallery_controller.current_filter.get("project_id") != project_id
+    )  # Filter not auto-applied
 
 
 if __name__ == "__main__":

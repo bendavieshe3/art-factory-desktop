@@ -9,6 +9,7 @@ from .project import Project
 from .order import Order, OrderItem
 from .product import Product
 from .collection import Collection, CollectionProduct
+from .generation_queue import GenerationQueue
 
 __all__ = [
     "Base",
@@ -19,4 +20,5 @@ __all__ = [
     "Product",
     "Collection",
     "CollectionProduct",
+    "GenerationQueue",
 ]

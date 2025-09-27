@@ -132,10 +132,7 @@ class TestGalleryWidget:
         qtbot.addWidget(gallery)
 
         # Create many test products
-        test_products = [
-            {"id": f"product-{i}", "name": f"Test Product {i}"}
-            for i in range(100)
-        ]
+        test_products = [{"id": f"product-{i}", "name": f"Test Product {i}"} for i in range(100)]
 
         gallery.set_products(test_products)
 
@@ -177,10 +174,7 @@ class TestGalleryWidget:
         qtbot.addWidget(gallery)
 
         # Create test products
-        test_products = [
-            {"id": f"product-{i}", "name": f"Test Product {i}"}
-            for i in range(10)
-        ]
+        test_products = [{"id": f"product-{i}", "name": f"Test Product {i}"} for i in range(10)]
 
         gallery.set_products(test_products)
         gallery._update_visible_items()
@@ -294,7 +288,7 @@ class TestImagePreviewModal:
         modal.set_product_list(["product-1", "product-2"], "product-1")
         QTest.keyPress(modal, Qt.Key.Key_Right)  # Should navigate next
 
-        QTest.keyPress(modal, Qt.Key.Key_Left)   # Should navigate previous
+        QTest.keyPress(modal, Qt.Key.Key_Left)  # Should navigate previous
 
 
 def test_gallery_integration(qtbot):

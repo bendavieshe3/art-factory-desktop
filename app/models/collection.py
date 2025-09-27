@@ -24,9 +24,7 @@ class Collection(BaseModel):
     description = Column(Text)
 
     # Cover image
-    cover_product_id = Column(
-        String(36), ForeignKey("products.id", ondelete="SET NULL")
-    )
+    cover_product_id = Column(String(36), ForeignKey("products.id", ondelete="SET NULL"))
 
     # Denormalized count
     product_count = Column(Integer, default=0)
@@ -110,9 +108,7 @@ class CollectionProduct(Base):
     collection_id = Column(
         String(36), ForeignKey("collections.id", ondelete="CASCADE"), primary_key=True
     )
-    product_id = Column(
-        String(36), ForeignKey("products.id", ondelete="CASCADE"), primary_key=True
-    )
+    product_id = Column(String(36), ForeignKey("products.id", ondelete="CASCADE"), primary_key=True)
 
     # Additional fields
     position = Column(Integer, default=0)  # For custom ordering

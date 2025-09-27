@@ -36,6 +36,7 @@ class DomainSignals(QObject):
     generation_progress = pyqtSignal(str, int)  # item_id, percent (0-100)
     generation_completed = pyqtSignal(str)  # item_id
     generation_failed = pyqtSignal(str, str)  # item_id, error
+    generation_cancelled = pyqtSignal(str)  # item_id
 
     # Product events
     product_created = pyqtSignal(str)  # product_id

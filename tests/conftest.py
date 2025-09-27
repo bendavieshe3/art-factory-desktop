@@ -72,9 +72,7 @@ def sample_project(db_session):
     from models import Project
 
     project = Project(
-        name="Test Project",
-        description="Test project for service tests",
-        status="active"
+        name="Test Project", description="Test project for service tests", status="active"
     )
     db_session.add(project)
     db_session.commit()
@@ -97,7 +95,7 @@ def sample_product(db_session, sample_project):
         file_path=file_path,
         file_size=len(b"fake image data"),
         width=1024,
-        height=1024
+        height=1024,
     )
 
     # Calculate hash
@@ -111,3 +109,74 @@ def sample_product(db_session, sample_project):
     # Clean up temp file
     if os.path.exists(file_path):
         os.unlink(file_path)
+
+
+@pytest.fixture
+def sample_order_item(db_session, sample_project):
+    """Create a sample order item for testing."""
+    from models import Order, OrderItem
+
+    order = Order(
+        project_id=sample_project.id,
+        provider="replicate",
+        model="stability-ai/sdxl",
+        model_family="stable-diffusion",
+        model_modality="text-to-image",
+        base_parameter_set={
+            "prompt": "A test image",
+            "steps": 20,
+            "guidance_scale": 7.5,
+        },
+    )
+    db_session.add(order)
+    db_session.flush()
+
+    order_item = OrderItem(
+        order_id=order.id,
+        sequence_number=1,
+        generation_parameter_set={
+            "prompt": "A test image",
+            "steps": 20,
+            "guidance_scale": 7.5,
+        },
+    )
+    db_session.add(order_item)
+    db_session.commit()
+    return order_item
+
+
+@pytest.fixture
+def sample_order_with_items(db_session, sample_project):
+    """Create a sample order with multiple items for testing."""
+    from models import Order, OrderItem
+
+    order = Order(
+        project_id=sample_project.id,
+        provider="replicate",
+        model="stability-ai/sdxl",
+        model_family="stable-diffusion",
+        model_modality="text-to-image",
+        base_parameter_set={
+            "prompt": "A [red,blue,green] dog",
+            "steps": 20,
+            "guidance_scale": 7.5,
+        },
+    )
+    db_session.add(order)
+    db_session.flush()
+
+    # Create multiple order items
+    for i, color in enumerate(["red", "blue", "green"]):
+        order_item = OrderItem(
+            order_id=order.id,
+            sequence_number=i + 1,
+            generation_parameter_set={
+                "prompt": f"A {color} dog",
+                "steps": 20,
+                "guidance_scale": 7.5,
+            },
+        )
+        db_session.add(order_item)
+
+    db_session.commit()
+    return order

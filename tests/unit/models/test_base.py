@@ -66,9 +66,7 @@ class TestBaseModel:
 
     def test_to_dict(self, session):
         """Test converting model to dictionary."""
-        project = Project(
-            name="Test Project", description="A test project", status="active"
-        )
+        project = Project(name="Test Project", description="A test project", status="active")
         session.add(project)
         session.commit()
 
